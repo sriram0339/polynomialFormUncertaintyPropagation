@@ -150,9 +150,26 @@ identifier : IDENT {
 queries: queries singleQuery
 | singleQuery;
 
-singleQuery: QUERY IDENT expr GEQ expr  {}
-| QUERY IDENT expr LEQ expr {}
-| QUERY IDENT EXPECT expr {};
+singleQuery: QUERY IDENT expr GEQ expr  {
+    ExprPtr queryExpr = std::make_shared<Plus>(ExprPtr($3), 1.0, ExprPtr($5), -1.0);
+    ProbabilityQuery q(*$2, queryExpr);
+    delete($2);
+    globalSystem -> addQuery(q);
+}
+| QUERY IDENT expr LEQ expr {
+    ExprPtr queryExpr = std::make_shared<Plus>(ExprPtr($3), -1.0, ExprPtr($5), 1.0);
+    ProbabilityQuery q(*$2, queryExpr);
+    delete($2);
+    globalSystem -> addQuery(q);
+
+}
+| QUERY IDENT EXPECT expr {
+    ExprPtr queryExpr($4);
+    ExpectationQuery q(*$2, queryExpr);
+    globalSystem -> addQuery(q);
+    delete($2);
+};
+
 
 %%
 

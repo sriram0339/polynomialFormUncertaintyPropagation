@@ -8,6 +8,7 @@
 #include "MultivariatePoly.hh"
 #include "ExprAST.hh"
 #include "DistributionInfo.hh"
+#include "Queries.hh"
 
 namespace PolynomialForms {
   class StochasticSystem {
@@ -17,6 +18,7 @@ namespace PolynomialForms {
       std::map<string, int> varIDs;
       std::map<int, ExprPtr> updates;
       std::map<int, DistributionInfoPtr> initialDistrib;
+      std::vector<Query> queries;
   public:
 
       StochasticSystem(){}
@@ -33,7 +35,17 @@ namespace PolynomialForms {
       int addVar(std::string varName, DistributionInfoPtr initialDistrib);
       void addUpdate(int varID, ExprPtr rhs);
       int getVarIDFromName(std::string varName);
+      void addQuery(Query q){
+          queries.push_back(q);
+      }
+      std::map<int, DistributionInfoPtr > const & getInitialMap() const {
+          return initialDistrib;
+      }
 
+      //std::map<int, MultivariatePoly> initialize();
+      //std::map<int, MultivariatePoly> runOneStep();
   };
+
+  typedef std::shared_ptr<StochasticSystem> StochasticSystemPtr;
 };
 #endif //POLYNOMIALFORMUNCERTAINTYPROPAGATION_SYSTEMDESCRIPTION_HH

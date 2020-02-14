@@ -232,7 +232,7 @@ namespace PolynomialForms{
         MultivariatePoly cosine(std::map<int, MpfiWrapper> const &var_env) const;
       //  MultivariatePoly exp(std::map<int, MpfiWrapper> const &var_env) const ;
 
-
+        MultivariatePoly truncate(int maxDegree);
         void prettyPrint(ostream & out, std::map<int, string> const & name_env) const;
 
     };

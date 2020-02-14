@@ -11,6 +11,7 @@
 #include "MpfiWrapper.hh"
 #include "DistributionInfo.hh"
 #include "MultivariatePoly.hh"
+#include "StateAbstraction.hh"
 
 namespace PolynomialForms {
     typedef enum {VAR_TYPE, CONST_TYPE, PLUS_TYPE, MULT_TYPE, SIN_TYPE, COS_TYPE, DISTRIB_TYPE, POW_TYPE} expr_type_t;
@@ -25,13 +26,12 @@ namespace PolynomialForms {
         explicit Expr(expr_type_t ty_): eType(ty_) {};
         [[nodiscard]] expr_type_t getType() const { return eType; };
         virtual void visit(ExprVisitorPtr ev) const = 0;
-        virtual MultivariatePoly evaluate(std::map<int, MultivariatePoly> const & env,
-                                          std::map<int, DistributionInfoPtr>  & randomVarInstancesMap)  const = 0;
+        virtual MultivariatePoly evaluate(StateAbstraction& st)  const = 0;
 
         virtual ~Expr() = default;
     };
 
-    typedef shared_ptr<Expr> ExprPtr;
+    typedef std::shared_ptr<Expr> ExprPtr;
 
     class Const: public Expr {
     protected:
@@ -39,8 +39,7 @@ namespace PolynomialForms {
     public:
         Const(MpfiWrapper c_): Expr(CONST_TYPE), c(c_) {};
         virtual void visit(ExprVisitorPtr ev ) const;
-        virtual MultivariatePoly evaluate(std::map<int, MultivariatePoly> const & env,
-                                          std::map<int, DistributionInfoPtr>  & randomVarInstancesMap) const {
+        virtual MultivariatePoly evaluate(StateAbstraction& st) const {
             return MultivariatePoly(c);
         }
     };
@@ -51,11 +50,8 @@ namespace PolynomialForms {
     public:
         Var(int id_): Expr(VAR_TYPE), varID(id_) {};
         virtual void visit(ExprVisitorPtr ev ) const;
-        virtual MultivariatePoly evaluate(std::map<int, MultivariatePoly> const & env,
-                                          std::map<int, DistributionInfoPtr>  & randomVarInstancesMap) const {
-            auto it = env.find(varID);
-            assert(it != env.end());
-            return it -> second;
+        virtual MultivariatePoly evaluate(StateAbstraction& st) const {
+            return st.getPolynomialForVar(varID);
         }
     };
 
@@ -77,12 +73,11 @@ namespace PolynomialForms {
         }
 
         virtual void visit(ExprVisitorPtr ev ) const ;
-        virtual MultivariatePoly evaluate(std::map<int, MultivariatePoly> const & env,
-                                          std::map<int, DistributionInfoPtr>  & randomVarInstancesMap) const{
+        virtual MultivariatePoly evaluate(StateAbstraction& st) const{
           int i =0;
           MultivariatePoly retPoly;
           for (i = 0; i < subExprs.size(); ++i ){
-              MultivariatePoly tmp = subExprs[i] -> evaluate(env, randomVarInstancesMap);
+              MultivariatePoly tmp = subExprs[i] -> evaluate(st);
               retPoly.scaleAndAddAssign(scaleFactors[i], tmp);
           }
           return retPoly;
@@ -97,12 +92,11 @@ namespace PolynomialForms {
 
 
         virtual void visit(ExprVisitorPtr ev ) const;
-        virtual MultivariatePoly evaluate(std::map<int, MultivariatePoly> const & env,
-                                          std::map<int, DistributionInfoPtr>  & randomVarInstancesMap) const{
+        virtual MultivariatePoly evaluate( StateAbstraction& st) const{
             MultivariatePoly retPoly(1.0);
             int i = 0;
             for (i = 0; i < subExprs.size(); ++i ) {
-                MultivariatePoly tmp = subExprs[i] -> evaluate(env, randomVarInstancesMap);
+                MultivariatePoly tmp = subExprs[i] -> evaluate(st);
                 retPoly = retPoly.multiply(tmp);
             }
             return retPoly;
@@ -119,9 +113,8 @@ namespace PolynomialForms {
         };
 
         virtual void visit(ExprVisitorPtr ev ) const ;
-        virtual MultivariatePoly evaluate(std::map<int, MultivariatePoly> const & env,
-                                          std::map<int, DistributionInfoPtr>  & randomVarInstancesMap) const {
-            MultivariatePoly tmp = subExpr -> evaluate(env, randomVarInstancesMap);
+        virtual MultivariatePoly evaluate(StateAbstraction& st) const {
+            MultivariatePoly tmp = subExpr -> evaluate(st);
             return tmp.powPoly(pow);
         }
     };
@@ -134,13 +127,9 @@ namespace PolynomialForms {
             assert(eType == SIN_TYPE || eType == COS_TYPE);
         }
         virtual void visit(ExprVisitorPtr ev ) const ;
-        virtual MultivariatePoly evaluate(std::map<int, MultivariatePoly> const & env,
-                std::map<int, DistributionInfoPtr>  & randomVarInstancesMap) const {
-            MultivariatePoly tmp = subExpr -> evaluate(env, randomVarInstancesMap);
-            std::map<int, MpfiWrapper> rangeMap;
-            for (auto p: randomVarInstancesMap){
-                rangeMap.insert(std::make_pair(p.first, p.second -> getRange()));
-            }
+        virtual MultivariatePoly evaluate(StateAbstraction & st) const {
+            MultivariatePoly tmp = subExpr -> evaluate(st);
+            std::map<int, MpfiWrapper> rangeMap = st.getRangeMapForNoiseSymbols();
             // to do
             switch(eType){
                 case SIN_TYPE:
@@ -161,12 +150,11 @@ namespace PolynomialForms {
     public:
         Distrib(DistributionInfoPtr dPtr_): Expr(DISTRIB_TYPE), dPtr(dPtr_) {};
         virtual void visit(ExprVisitorPtr ev) const;
-        virtual MultivariatePoly evaluate(std::map<int, MultivariatePoly> const & env,
-                                          std::map<int, DistributionInfoPtr>  & randomVarInstancesMap) const {
+        virtual MultivariatePoly evaluate(StateAbstraction & st) const {
             // Make a new instance
-            int varId = randomVarInstancesMap.size();
+            int varId = st.getNewNoiseSymbol();
             MultivariatePoly retPoly(1.0, varId);
-            randomVarInstancesMap.insert(std::make_pair(varId, dPtr));
+            st.addNewNoiseSymbol(varId, dPtr);
             return retPoly;
         }
     };
