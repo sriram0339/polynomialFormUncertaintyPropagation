@@ -26,6 +26,10 @@ namespace PolynomialForms{
             return id;
         }
 
+        std::map<int, DistributionInfoPtr > const& getNoiseSymbolInfoMap() const {
+            return distributionInfo;
+        }
+
         void initialize(std::map<int, DistributionInfoPtr> const & distribMap ){
             for (auto p: distribMap){
                 int varId = p.first;
@@ -55,7 +59,14 @@ namespace PolynomialForms{
             }
             return retMap;
         }
+
+        void setStateMap(std::map<int, MultivariatePoly> const & newStateMap){
+            stateVarMap.clear();
+            stateVarMap = newStateMap;
+        }
     };
+
+    typedef std::shared_ptr<StateAbstraction> StateAbstractionPtr;
 
 };
 

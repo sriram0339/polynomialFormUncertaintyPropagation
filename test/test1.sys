@@ -1,0 +1,14 @@
+var x init uniform (-0.2, 0.2)
+var y init uniform (0, 1)
+var z init uniform(-0.1, 0.1)
+
+x := x + 0.01 * sin(y) - 0.01 * cos(y) + truncGaussian(0.0, 0.1, -1.0, 1.0)
+y := y + 0.1 * z + uniform(-0.1, 0.1)
+z  := uniform(-0.1, 0.1)
+
+query q0 x >= 10
+query q1 expectation x
+query q2 expectation y^2
+query q3 expectation z
+query q4 expectation y
+end

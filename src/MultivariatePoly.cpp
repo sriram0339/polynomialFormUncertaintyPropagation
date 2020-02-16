@@ -136,6 +136,21 @@ namespace PolynomialForms {
         return retPoly;
     }
 
+    MultivariatePoly MultivariatePoly::truncate(int maxDegree,
+            std::map<int, MpfiWrapper> const &var_env ) const {
+        MpfiWrapper constPart = constIntvl;
+        MultivariatePoly retPoly(constIntvl);
+        for (auto p: terms){
+            if (p.first.totalDegree() <= maxDegree){
+                retPoly.setTerm(p.first, p.second);
+            } else {
+                MpfiWrapper intvl = p.first.evaluate(var_env);
+                constPart = constPart + intvl * p.second;
+            }
+        }
+        retPoly.setConst(constPart);
+        return retPoly;
+    }
 
 
 };

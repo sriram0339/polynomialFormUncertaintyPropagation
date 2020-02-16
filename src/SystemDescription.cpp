@@ -29,5 +29,58 @@ namespace PolynomialForms{
         }
     }
 
+    StateAbstractionPtr StochasticSystem::initialize() {
+        StateAbstractionPtr st = std::make_shared<StateAbstraction>();
+        st -> initialize(initialDistrib);
+        return st;
+    }
+
+    void StochasticSystem::computeOneStep(StateAbstractionPtr st, int maxDegree) {
+        std::map<int, MultivariatePoly> newStateMap;
+        for (auto p: updates){
+            int varID = p.first;
+            ExprPtr e = p.second;
+            MultivariatePoly mp2 = e -> evaluate(st);
+            if (maxDegree > 0) {
+                MultivariatePoly mp2_trunc = mp2.truncate(maxDegree, st->getRangeMapForNoiseSymbols());
+                newStateMap.insert(make_pair(varID, mp2_trunc));
+            } else {
+                newStateMap.insert(make_pair(varID, mp2));
+            }
+        }
+        st -> setStateMap(newStateMap);
+    }
+
+    void StochasticSystem::prettyPrintStateAbstraction(std::ostream &what, StateAbstractionPtr st) {
+        std::map<int, string> name_env;
+
+        for (int varID = 0; varID < numStateVars; ++varID){
+            what << varNames[varID] << std::endl;
+            MultivariatePoly const & p =  st -> getPolynomialForVar(varID);
+            p.prettyPrint(what, name_env);
+
+        }
+    }
+
+    void StochasticSystem::evaluateQueries(StateAbstractionPtr st) {
+        for (auto q: queries){
+            ExprPtr e = q.getExpr();
+            MultivariatePoly p = e -> evaluate(st);
+            std::cout << "Evaluating query " << q.getID() << std::endl;
+            switch (q.getType()){
+                case PROB_QUERY:
+                    break;
+                case EXPECT_QUERY:
+                    MpfiWrapper r = p.expectation(st -> getNoiseSymbolInfoMap());
+                    std::cout << "\t RESULT: " << r << std::endl;
+                    break;
+            }
+
+            std::cout << "Finished query " << q.getID() << std::endl;
+
+
+        }
+    }
+
 
 };

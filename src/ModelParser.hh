@@ -13,6 +13,9 @@ using namespace PolynomialForms;
 extern StochasticSystem * globalSystem;
 extern int lineNum;
 
+void parserMain(const char * fileName);
+StateAbstractionPtr computeNSteps(int n, int maxDegree);
+
 
 
 #endif //POLYNOMIALFORMUNCERTAINTYPROPAGATION_MODELPARSER_HH

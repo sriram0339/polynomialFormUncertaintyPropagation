@@ -9,8 +9,10 @@
 #include "ExprAST.hh"
 #include "DistributionInfo.hh"
 #include "Queries.hh"
+#include "StateAbstraction.hh"
 
 namespace PolynomialForms {
+
   class StochasticSystem {
   protected:
       int numStateVars;
@@ -38,12 +40,17 @@ namespace PolynomialForms {
       void addQuery(Query q){
           queries.push_back(q);
       }
+
       std::map<int, DistributionInfoPtr > const & getInitialMap() const {
           return initialDistrib;
       }
 
-      //std::map<int, MultivariatePoly> initialize();
-      //std::map<int, MultivariatePoly> runOneStep();
+      StateAbstractionPtr initialize();
+      void computeOneStep(StateAbstractionPtr st, int maxDegree = -1);
+
+      void prettyPrintStateAbstraction(std::ostream & what, StateAbstractionPtr st);
+
+      void evaluateQueries(StateAbstractionPtr st);
   };
 
   typedef std::shared_ptr<StochasticSystem> StochasticSystemPtr;

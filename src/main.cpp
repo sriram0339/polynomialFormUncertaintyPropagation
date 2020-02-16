@@ -3,6 +3,10 @@
 //
 
 #include "MultivariatePoly.hh"
+#include "ModelParser.hh"
+namespace PolynomialForms{
+    bool debug = true;
+};
 
 using namespace PolynomialForms;
 void test1(){
@@ -123,9 +127,10 @@ void sineAndCosineTest(){
 }
 
 int main(){
-
-   sineAndCosineTest();
-
-
-
+    parserMain("/Users/srirams/Projects/github/polynomialFormUncertaintyPropagation/test/test1.sys");
+    StateAbstractionPtr st = computeNSteps(10, 4);
+    std::cout << "Evaluating Queries"<< std::endl;
+    globalSystem -> evaluateQueries(st);
+   //sineAndCosineTest();
+    return 1;
 }

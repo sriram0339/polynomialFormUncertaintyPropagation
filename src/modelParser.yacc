@@ -64,7 +64,7 @@
 
 %%
 
-model: varDeclarations modelEquations queries;
+model: varDeclarations modelEquations queries END;
 
 varDeclarations: singleVarDecl
 | varDeclarations singleVarDecl;
@@ -79,10 +79,10 @@ singleVarDecl: VAR IDENT  INIT distributionSpec
     delete($2);
 };
 
-distributionSpec: UNIFORM "(" NUM "," NUM ")" {
+distributionSpec: UNIFORM '(' NUM ',' NUM ')' {
     $$ = new UniformDistributionInfo(MpfiWrapper($3, $5));
 }
-| TRUNCGAUSSIAN "(" NUM "," NUM "," NUM "," NUM ")" {
+| TRUNCGAUSSIAN '(' NUM ',' NUM ',' NUM ',' NUM ')' {
     $$ = new TruncNormalDistributionInfo(MpfiWrapper($7, $9), $3, $5);
 }
 ;
@@ -152,20 +152,19 @@ queries: queries singleQuery
 
 singleQuery: QUERY IDENT expr GEQ expr  {
     ExprPtr queryExpr = std::make_shared<Plus>(ExprPtr($3), 1.0, ExprPtr($5), -1.0);
-    ProbabilityQuery q(*$2, queryExpr);
+    Query q = probabilityQuery(*$2, queryExpr);
     delete($2);
     globalSystem -> addQuery(q);
 }
 | QUERY IDENT expr LEQ expr {
     ExprPtr queryExpr = std::make_shared<Plus>(ExprPtr($3), -1.0, ExprPtr($5), 1.0);
-    ProbabilityQuery q(*$2, queryExpr);
+    Query q = probabilityQuery(*$2, queryExpr);
     delete($2);
     globalSystem -> addQuery(q);
-
 }
 | QUERY IDENT EXPECT expr {
     ExprPtr queryExpr($4);
-    ExpectationQuery q(*$2, queryExpr);
+    Query q = expectationQuery(*$2, queryExpr);
     globalSystem -> addQuery(q);
     delete($2);
 };

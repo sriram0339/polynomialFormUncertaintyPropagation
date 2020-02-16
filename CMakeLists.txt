@@ -34,7 +34,7 @@ add_executable(polynomialFormUncertaintyPropagation src/main.cpp src/main.cpp sr
                src/MpfiWrapper.hh src/MpfiWrapper.cpp src/MultivariatePoly.cpp
                src/DistributionInfo.hh src/truncatedNormalCode.cpp src/truncatedNormalCode.hh
                ${BISON_MyParser_OUTPUTS}  ${FLEX_MyScanner_OUTPUTS}
-               src/ExprAST.hh src/ExprAST.cpp src/SystemDescription.hh src/ModelParser.hh src/SystemDescription.cpp src/ModelParser.cpp src/Queries.hh src/StateAbstraction.hh)
+               src/ExprAST.hh src/ExprAST.cpp src/SystemDescription.hh src/ModelParser.hh src/SystemDescription.cpp src/ModelParser.cpp src/Queries.hh src/StateAbstraction.hh src/ProbabilityQueryEvaluator.hh src/ProbabilityQueryEvaluator.cpp)
 
 target_link_libraries(polynomialFormUncertaintyPropagation
         ${MPFR_LIBRARIES}

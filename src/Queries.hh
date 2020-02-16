@@ -9,27 +9,29 @@
 #include "ExprAST.hh"
 
 namespace PolynomialForms {
-
+    typedef enum {PROB_QUERY, EXPECT_QUERY } query_type_t;
     class Query {
     protected:
+        query_type_t qType;
         std::string id;
         ExprPtr queryExpr; // we seek its expectation
-    public:
-        Query(std::string qid, ExprPtr e_) : id(qid), queryExpr(e_) {}
-    };
-
-    class ProbabilityQuery: public Query {
-    protected:
-    public:
-        ProbabilityQuery(std::string qid, ExprPtr e_): Query(qid, e_){};
-    };
-
-    class ExpectationQuery: public Query {
-    protected:
 
     public:
-        ExpectationQuery(std::string qid, ExprPtr e_): Query(qid, e_){};
+        Query(query_type_t qType_, std::string qid, ExprPtr e_) : qType(qType_), id(qid), queryExpr(e_) {}
+        ExprPtr getExpr(){ return queryExpr; }
+        string getID() const { return id;}
+        query_type_t  getType() const { return qType; }
     };
+
+    inline Query probabilityQuery(std::string qid, ExprPtr e_) {
+        return Query(PROB_QUERY, qid, e_);
+    }
+
+
+    inline Query expectationQuery(std::string qid, ExprPtr e_) {
+        return Query(EXPECT_QUERY, qid, e_);
+    }
+
 
 };
 #endif //POLYNOMIALFORMUNCERTAINTYPROPAGATION_QUERIES_HH

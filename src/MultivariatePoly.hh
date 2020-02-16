@@ -11,6 +11,7 @@
 #include "MpfiWrapper.hh"
 #include <iostream>
 #include "DistributionInfo.hh"
+#include <sstream>
 
 namespace PolynomialForms{
 
@@ -38,9 +39,21 @@ namespace PolynomialForms{
                 return 0;
         }
 
+        set<int> const & getIndices() const { return indices; }
+
+
         bool isZeroPP() const {
             return totalDegree() == 0;
         }
+
+        /* Check if any of the vars in the power product are in the set vars */
+        bool hasIntersectionWith(std::set<int> const & vars ) const {
+            return std::any_of(indices.begin(), indices.end(), [&](int i) {
+               return vars.find(i) != vars.end();
+            } );
+        }
+
+
 
         int totalDegree() const {
             int sum = 0;
@@ -120,10 +133,18 @@ namespace PolynomialForms{
             std::string sep = "";
             for (auto const p: pp){
                 auto it = name_env.find(p.first);
-                assert(it != name_env.end());
+                stringstream ss;
+                string name;
+                if (it == name_env.end()){
+                    ss << "w"<<p.first ;
+                    name = ss.str();
+                }  else {
+                    name = it -> second;
+                }
+
                 assert(p.second > 0);
                 out << sep;
-                out << it -> second ;
+                out << name ;
                 if (p.second > 1){
                     out << "^" <<p.second;
                 }
@@ -150,6 +171,16 @@ namespace PolynomialForms{
             PowerProduct pp;
             pp.setPower(varID, 1);
             terms.insert(std::make_pair(pp, what));
+        }
+
+        std::map<PowerProduct, MpfiWrapper> getTerms() const { return terms;}
+
+        std::set<PowerProduct> getPowerProducts() const {
+            set<PowerProduct> retSet;
+            for (auto p: terms){
+                retSet.insert(p.first);
+            }
+            return retSet;
         }
 
         void setConst(MpfiWrapper const & coeff){
@@ -232,8 +263,10 @@ namespace PolynomialForms{
         MultivariatePoly cosine(std::map<int, MpfiWrapper> const &var_env) const;
       //  MultivariatePoly exp(std::map<int, MpfiWrapper> const &var_env) const ;
 
-        MultivariatePoly truncate(int maxDegree);
+        MultivariatePoly truncate(int maxDegree, std::map<int, MpfiWrapper> const &var_env) const;
         void prettyPrint(ostream & out, std::map<int, string> const & name_env) const;
+        MpfiWrapper constantIntvl() const { return constIntvl; };
+
 
     };
 };
