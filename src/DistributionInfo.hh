@@ -65,9 +65,11 @@ namespace PolynomialForms {
         virtual MpfiWrapper getMoment(int j) const {
             if (j == 1) { return getExpectation(); }
             MpfiWrapper den(1.0 + (double) j);
+
             MpfiWrapper a = range.upper();
             MpfiWrapper b = range.lower();
-            MpfiWrapper v = pow(a, j+1) - pow(b, j+1);
+            den = den * (b-a);
+            MpfiWrapper v = pow(b, j+1) - pow(a, j+1);
             MpfiWrapper retVal = 1.0/den * v;
             return retVal;
         }

@@ -4,6 +4,7 @@
 
 #include <deque>
 #include "ProbabilityQueryEvaluator.hh"
+#include <cmath>
 
 namespace PolynomialForms{
     extern bool debug;
@@ -86,7 +87,7 @@ namespace PolynomialForms{
                     for (int j: c){
                         std::cout << "w" << j << " ";
                     }
-                    std::cout << "}";
+                    std::cout << "}" << std::endl;
                 }
             }
         }
@@ -132,6 +133,74 @@ namespace PolynomialForms{
 
     void ProbabilityQueryEvaluator::separatePolynomialIntoComponents() {
         NoiseSymbolGraph nsGraph(distributionInfo.size(), mp, splitComponents);
+        polynomialExpectation = mp.expectation(distributionInfo);
+        MpfiWrapper sumOfExpectations(0.0);
+        for (auto & c: splitComponents){
+            MpfiWrapper cExpect = c.expectation(distributionInfo);
+            componentExpectations.push_back(cExpect);
+            componentRanges.push_back(c.evaluate(distributionRanges));
+            c.addToConst(-1.0 * cExpect);
+            sumOfExpectations = sumOfExpectations + cExpect;
+            MultivariatePoly cSq = c.squarePoly();
+            MpfiWrapper tmp = cSq.expectation(distributionInfo);
+            if (tmp.lower() < 0){
+                std::cout << "Warning: second moment is negative???" << tmp << std::endl;
+                c.prettyPrint(std::cout, std::map<int, string>());
+                cSq.prettyPrint(std::cout, std::map<int, string>());
+            }
+            componentVariances.push_back(tmp);
+        }
+        if (debug ){
+            std::cout << "Separate Polynomial into components:" << std::endl;
+            std::cout << "Original Expectation: " << polynomialExpectation << std::endl;
+            std::cout << "Sum of component expectations: " << sumOfExpectations << std::endl;
+        }
+
+    }
+
+    double ProbabilityQueryEvaluator::computeChebyshevBounds() const {
+        /*
+         * 1. Assume that the polynomial has been separated into components.
+         * 2. Sum up the variances of each component.
+         */
+        MpfiWrapper variancesSum (0.0);
+        for (auto c: componentVariances) {
+            variancesSum = variancesSum + c;
+        }
+        double bound = variancesSum.upper() / ( (t - polynomialExpectation.upper())* (t - polynomialExpectation.upper()) );
+        return bound;
+    }
+
+    double ProbabilityQueryEvaluator::computeChernoffBound() const {
+        double s = t - polynomialExpectation.upper();
+        double denSum = 0;
+        for (auto c: splitComponents){
+            MpfiWrapper rng = c.evaluate(distributionRanges);
+            denSum = denSum + (rng.upper() - rng.lower()) * (rng.upper() - rng.lower());
+        }
+        double expFactor = - 2* s * s / denSum;
+        return exp(expFactor);
+    }
+
+
+    double ProbabilityQueryEvaluator::computeFourthMomentBound() const {
+        MpfiWrapper fourthMomentSum(0.0);
+        for (auto c: splitComponents){
+            MultivariatePoly c4 = c.powPoly(4);
+            MpfiWrapper fourthMoment = c4.expectation(distributionInfo);
+            fourthMomentSum = fourthMoment + fourthMomentSum;
+        }
+        int n = componentVariances.size();
+        int i,j;
+        for (i =0 ; i < n; ++i){
+            for (j = i+1; j < n; ++j){
+                fourthMomentSum = fourthMomentSum + 2 * componentVariances[i] * componentVariances[j];
+            }
+        }
+        double denom = (t - polynomialExpectation.upper())* (t - polynomialExpectation.upper()) *  (t - polynomialExpectation.upper()) * (t - polynomialExpectation.upper()) ;
+        double bound = fourthMomentSum.upper() / denom;
+        return bound;
+
     }
 
 

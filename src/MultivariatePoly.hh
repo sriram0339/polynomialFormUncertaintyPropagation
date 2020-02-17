@@ -157,11 +157,16 @@ namespace PolynomialForms{
 
 
     };
-
+    typedef enum {PLUS_SINE, PLUS_COSINE, MINUS_SINE, MINUS_COSINE} trig_deriv_t;
     class MultivariatePoly {
     protected:
         MpfiWrapper constIntvl;
         std::map<PowerProduct, MpfiWrapper> terms;
+
+        MultivariatePoly computeTrig(
+                std::map<int, MpfiWrapper> const &var_env,
+                trig_deriv_t derivState
+        ) const;
     public:
 
         MultivariatePoly(){};
@@ -174,7 +179,7 @@ namespace PolynomialForms{
         }
 
         std::map<PowerProduct, MpfiWrapper> getTerms() const { return terms;}
-
+        MpfiWrapper getConstIntvl() const {return constIntvl; }
         std::set<PowerProduct> getPowerProducts() const {
             set<PowerProduct> retSet;
             for (auto p: terms){

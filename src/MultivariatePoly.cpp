@@ -54,6 +54,104 @@ namespace PolynomialForms {
         return retPoly;
     }
 
+
+    int trig_num_terms = 3;
+
+    trig_deriv_t nextDeriv(trig_deriv_t state) {
+        switch (state){
+            case PLUS_SINE:
+                return PLUS_COSINE;
+            case PLUS_COSINE:
+                return MINUS_SINE;
+            case MINUS_SINE:
+                return MINUS_COSINE;
+            case MINUS_COSINE:
+                return PLUS_SINE;
+            default:
+                assert(false);
+        }
+    }
+
+    MultivariatePoly MultivariatePoly::computeTrig(
+                std::map<int, MpfiWrapper> const &var_env,
+                trig_deriv_t derivState
+            ) const {
+
+        MpfiWrapper rng = this -> evaluate(var_env);
+        // Choose the center point of this range.
+        MpfiWrapper c = median(rng);
+        MpfiWrapper sinc = sin(c);
+        MpfiWrapper cosc = cos(c);
+        MultivariatePoly retPoly;
+        switch (derivState){
+            case PLUS_COSINE:
+                retPoly.setConst(cosc);
+                break;
+            case PLUS_SINE:
+                retPoly.setConst(sinc);
+                break;
+            default:
+                assert(false);
+        }
+
+        MultivariatePoly qPoly(*this);
+        qPoly.addToConst(-1.0 * c);
+
+        MultivariatePoly tmpPoly(1.0);
+        MpfiWrapper fact(1.0);
+        int i;
+        for (i = 1; i <= trig_num_terms; ++i){
+            derivState = nextDeriv(derivState); // derivative state gives us what derivative to apply
+            tmpPoly = tmpPoly.multiply(qPoly); // tmpPoly = (p - c)^i
+            fact = fact * MpfiWrapper((double) i);
+            MpfiWrapper curDeriv;
+            switch (derivState) {
+                case PLUS_SINE:
+                    curDeriv = sinc/fact;
+                    break;
+                case PLUS_COSINE:
+                    curDeriv = cosc/fact;
+                    break;
+                case MINUS_COSINE:
+                    curDeriv = -cosc/fact;
+                    break;
+                case MINUS_SINE:
+                    curDeriv = -sinc/fact;
+                    break;
+            }
+            // retPoly = retPoly + (f^{(i)}(c))/i! * (p-c)^i
+            retPoly.scaleAndAddAssign(curDeriv, tmpPoly, true);
+        }
+
+        // Npw for the reminder term
+        derivState = nextDeriv(derivState);
+        tmpPoly = tmpPoly.multiply(qPoly); // tmp = (p-c)^{i+1}
+        fact = fact * MpfiWrapper((double) i); // i = num_trig_terms + 1
+        MpfiWrapper remRange;
+        rng = rng - c ; // correct the range by subtracting the center point
+        switch (derivState) {
+            case PLUS_SINE:
+                remRange = sin(rng)/fact;
+                break;
+            case PLUS_COSINE:
+                remRange = cos(rng)/fact;
+                break;
+            case MINUS_COSINE:
+                remRange = -cos(rng)/fact;
+                break;
+            case MINUS_SINE:
+                remRange = -sin(rng)/fact;
+                break;
+        }
+
+
+        MpfiWrapper polyRange = tmpPoly.evaluate(var_env);
+        MpfiWrapper lagrangeRem = remRange * polyRange;
+        retPoly.addToConst(lagrangeRem);
+        return retPoly;
+
+    }
+
     MultivariatePoly MultivariatePoly::sine(std::map<int, MpfiWrapper> const &var_env) const {
         /*
          * We will use the following idea.
@@ -61,25 +159,23 @@ namespace PolynomialForms {
          *    sin(c) + q(w) cos(c) - sin(c) q^2(w)/2 - cos(c) q^3(w)/6 + Rem(sin(c) q^4(w)/24)
          *
          */
-         MpfiWrapper rng = this -> evaluate(var_env);
-         // Choose the center point of this range.
-         MpfiWrapper c = median(rng);
-         MpfiWrapper sinc = sin(c);
-         MpfiWrapper cosc = cos(c);
-         MultivariatePoly retPoly(sinc);
-         MultivariatePoly tmpPoly(*this);
-         tmpPoly.addToConst(-1.0 * c);
-         retPoly.scaleAndAddAssign(cosc, tmpPoly);
-         MultivariatePoly pows = tmpPoly.squarePoly();
-         retPoly.scaleAndAddAssign(-0.5 * sinc, pows );
-         MultivariatePoly pows3 = pows.multiply(*this);
-         retPoly.scaleAndAddAssign(MpfiWrapper(-1.0/6.0) * cosc, pows3 );
-         MultivariatePoly pows4 = pows . squarePoly();
-         pows4.scaleAssign(MpfiWrapper(1.0/24.0)* sin(rng));
-         MpfiWrapper rem = pows4.evaluate(var_env);
-         retPoly.addToConst(rem);
-         return retPoly;
+        return computeTrig(var_env, PLUS_SINE);
+
     }
+
+
+    MultivariatePoly MultivariatePoly::cosine(std::map<int, MpfiWrapper> const &var_env) const {
+        /*
+         * We will use the following idea.
+         *  cos(p(w)) = cos(c + q(w)) =
+         *    cos(c) - q(w) sin(c) - cos(c) q^2(w)/2 + sin(c) q^3(w)/6 + Rem(cos(c) q^4(w)/24)
+         *
+         */
+
+
+        return computeTrig(var_env, PLUS_COSINE);
+    }
+
 
     MpfiWrapper MultivariatePoly::evaluate(std::map<int, MpfiWrapper> const &var_env) const {
         MpfiWrapper reslt(constIntvl);
@@ -106,34 +202,6 @@ namespace PolynomialForms {
             p.first.prettyPrint(out, name_env);
         }
         out << std::endl;
-    }
-
-    MultivariatePoly MultivariatePoly::cosine(std::map<int, MpfiWrapper> const &var_env) const {
-        /*
-         * We will use the following idea.
-         *  cos(p(w)) = cos(c + q(w)) =
-         *    cos(c) - q(w) sin(c) - cos(c) q^2(w)/2 + sin(c) q^3(w)/6 + Rem(cos(c) q^4(w)/24)
-         *
-         */
-
-        MpfiWrapper rng = this -> evaluate(var_env);
-        // Choose the center point of this range.
-        MpfiWrapper c = median(rng);
-        MpfiWrapper sinc = sin(c);
-        MpfiWrapper cosc = cos(c);
-        MultivariatePoly retPoly(cosc);
-        MultivariatePoly tmpPoly(*this);
-        tmpPoly.addToConst(-1.0 * c);
-        retPoly.scaleAndAddAssign(MpfiWrapper(-1.0) * sinc, tmpPoly);
-        MultivariatePoly pows = tmpPoly.squarePoly();
-        retPoly.scaleAndAddAssign(-0.5 * cosc, pows );
-        MultivariatePoly pows3 = pows.multiply(*this);
-        retPoly.scaleAndAddAssign(MpfiWrapper(1.0/6.0) * sinc, pows3 );
-        MultivariatePoly pows4 = pows . squarePoly();
-        pows4.scaleAssign(MpfiWrapper(1.0/24.0)* cos(rng));
-        MpfiWrapper rem = pows4.evaluate(var_env);
-        retPoly.addToConst(rem);
-        return retPoly;
     }
 
     MultivariatePoly MultivariatePoly::truncate(int maxDegree,

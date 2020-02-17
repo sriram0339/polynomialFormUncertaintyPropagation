@@ -92,13 +92,29 @@ namespace PolynomialForms {
 
 
         virtual void visit(ExprVisitorPtr ev ) const;
+
         virtual MultivariatePoly evaluate( StateAbstractionPtr st) const{
             MultivariatePoly retPoly(1.0);
+            MpfiWrapper rem(0.0);
             int i = 0;
             for (i = 0; i < subExprs.size(); ++i ) {
                 MultivariatePoly tmp = subExprs[i] -> evaluate(st);
+                MpfiWrapper constTerm = tmp.getConstIntvl();
+                MpfiWrapper medPt = median(constTerm);
+                tmp.setConst(medPt);
+                constTerm = constTerm - medPt;
+                std::map<int, MpfiWrapper> rangeMap = st->getRangeMapForNoiseSymbols();
+                MpfiWrapper tmpIntvl = tmp.evaluate(rangeMap);
+                MpfiWrapper retPolyIntvl = retPoly.evaluate(rangeMap);
+                if ( i == 0){
+                    rem = constTerm;
+                } else {
+                    rem = rem * tmpIntvl + constTerm * retPolyIntvl;
+                }
+
                 retPoly = retPoly.multiply(tmp);
             }
+            retPoly.addToConst(rem);
             return retPoly;
         }
     };

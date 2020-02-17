@@ -6,9 +6,10 @@ x := x + 0.01 * sin(y) - 0.01 * cos(y) + truncGaussian(0.0, 0.1, -1.0, 1.0)
 y := y + 0.1 * z + uniform(-0.1, 0.1)
 z  := uniform(-0.1, 0.1)
 
-query q0 x >= 10
-query q1 expectation x
-query q2 expectation y^2
-query q3 expectation z
-query q4 expectation y
+query q0 x >= 3
+query q1 y >= 2
+query q2 expectation x
+query q3 expectation y^2
+query q4 expectation z
+query q5 expectation y
 end

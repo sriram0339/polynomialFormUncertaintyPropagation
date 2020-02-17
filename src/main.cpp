@@ -5,7 +5,7 @@
 #include "MultivariatePoly.hh"
 #include "ModelParser.hh"
 namespace PolynomialForms{
-    bool debug = true;
+    bool debug = false;
 };
 
 using namespace PolynomialForms;
@@ -127,10 +127,10 @@ void sineAndCosineTest(){
 }
 
 int main(){
-    parserMain("/Users/srirams/Projects/github/polynomialFormUncertaintyPropagation/test/test1.sys");
-    StateAbstractionPtr st = computeNSteps(10, 4);
+    parserMain("/Users/srirams/Projects/github/polynomialFormUncertaintyPropagation/test/test2.sys");
+    StateAbstractionPtr st = computeNSteps(6, 3);
     std::cout << "Evaluating Queries"<< std::endl;
     globalSystem -> evaluateQueries(st);
-   //sineAndCosineTest();
+    //sineAndCosineTest();
     return 1;
 }

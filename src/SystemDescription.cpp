@@ -2,6 +2,7 @@
 // Created by Sriram Sankaranarayanan on 2/14/20.
 //
 
+#include "ProbabilityQueryEvaluator.hh"
 #include "SystemDescription.hh"
 
 
@@ -68,11 +69,22 @@ namespace PolynomialForms{
             MultivariatePoly p = e -> evaluate(st);
             std::cout << "Evaluating query " << q.getID() << std::endl;
             switch (q.getType()){
-                case PROB_QUERY:
+                case PROB_QUERY: {
+                    ProbabilityQueryEvaluator pqe(p, st->getNoiseSymbolInfoMap());
+                    pqe.separatePolynomialIntoComponents();
+                    double bnd = pqe.computeChebyshevBounds();
+                    std::cout << "Chebyshev bounds: " << bnd << std::endl;
+                    //double bnd4 = pqe.computeFourthMomentBound();
+                    //std::cout << "Fourth moment bounds: " << bnd4 << std::endl;
+                    std::cout << "Chernoff Bounds:" << pqe.computeChernoffBound() << std::endl;
+                }
                     break;
-                case EXPECT_QUERY:
-                    MpfiWrapper r = p.expectation(st -> getNoiseSymbolInfoMap());
+                case EXPECT_QUERY: {
+                    MpfiWrapper r = p.expectation(st->getNoiseSymbolInfoMap());
                     std::cout << "\t RESULT: " << r << std::endl;
+                    MpfiWrapper rHat = p.evaluate(st->getRangeMapForNoiseSymbols());
+                    std::cout << "\t RANGE: " << rHat << std::endl;
+                }
                     break;
             }
 

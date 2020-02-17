@@ -14,7 +14,12 @@ namespace PolynomialForms {
     protected:
         MultivariatePoly mp;
         std::map<int, DistributionInfoPtr > distributionInfo;
+        std::map<int, MpfiWrapper> distributionRanges;
         std::vector<MultivariatePoly> splitComponents;
+        std::vector<MpfiWrapper> componentExpectations;
+        std::vector<MpfiWrapper> componentRanges;
+        std::vector<MpfiWrapper> componentVariances;
+        MpfiWrapper polynomialExpectation;
 
         double t;
     public:
@@ -23,9 +28,15 @@ namespace PolynomialForms {
             MpfiWrapper cTerm = mp.constantIntvl();
             mp.setConst(0);
             t = - cTerm.lower(); // p + [l,u] >= 0 only if p >= -l
+            for (auto p: distributionInfo){
+                distributionRanges.insert(std::make_pair(p.first, p.second->getRange()));
+            }
         }
 
         void separatePolynomialIntoComponents();
+        double computeChebyshevBounds() const;
+        double computeChernoffBound() const;
+        double computeFourthMomentBound() const;
 
 
     };
