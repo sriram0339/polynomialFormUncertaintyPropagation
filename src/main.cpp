@@ -4,133 +4,105 @@
 
 #include "MultivariatePoly.hh"
 #include "ModelParser.hh"
+#include <cstdlib>
+#include <unistd.h>
+#include <cstdio>
+
 namespace PolynomialForms{
     bool debug = false;
+    bool fourthMomentBoundCalculation = false;
 };
 
 using namespace PolynomialForms;
-void test1(){
-    // Test the polynomial manipulations
-    // 1. Create a polynomial
-    std::map<int, string> name_map = {{0, "x0"}, {1, "x1"}, {2, "x2"}, {3, "x3"}};
-    MultivariatePoly p0(5.0, 2);
-    p0.addToConst(3.0);
-    std::cout << "p0 = ";
-    p0.prettyPrint(std::cout, name_map);
 
-    MultivariatePoly p1(1.0, 1);
-    p1.addToConst(2.0);
-    MultivariatePoly p2 = p1.squarePoly();
+extern void computeRoboticArmModel(int numReachSteps);
+extern void computeRimlessWheel(int numReachSteps);
 
-    std:: cout << "p1 = " ;
-    p1.prettyPrint(std::cout, name_map);
-    std::cout << "p2 = ";
-    p2.prettyPrint(std::cout, name_map);
-
-    MultivariatePoly p3 = p2.multiply(p0);
-    std::cout << "p3 = p0 * p2 = ";
-    p3.prettyPrint(std::cout, name_map);
-
-    PowerProduct pp0;
-    PowerProduct pp1;
-    pp0.setPower(1, 1);
-    pp1.setPower(2, 1);
-    PowerProduct pp2 = pp0.multiply(pp1);
-    pp2.prettyPrint(std::cout, name_map);
-    std::cout << std::endl;
-    p2.setTerm(pp2, MpfiWrapper(2.5));
-    std::cout << "p2' = ";
-    p2.prettyPrint(std::cout, name_map);
-
-    MultivariatePoly p5 = p2.powPoly(3);
-    std::cout << "p5 = p2^3 = ";
-    p5.prettyPrint(std::cout, name_map);
-
-    p5.scaleAndAddAssign(MpfiWrapper(-1.0), p2.squarePoly());
-    std::cout << "p5 = p2^3  - p2^2 = ";
-    p5.prettyPrint(std::cout, name_map);
-
-    p5.scaleAssign(MpfiWrapper(0.1));
-    std::cout << "0.1*p5 =  ";
-    p5.prettyPrint(std::cout, name_map);
-
+void printHelpMessage(const char * progName){
+    std::cout << "Usage: " << progName << " [options] [optional file name to parse]" << std::endl;
+    std::cout << "Options: "<<std::endl;
+    std::cout << "\t -n <number of time steps> " << std::endl;
+    std::cout << "\t -d <max poly form degree> " << std::endl;
+    std::cout << "\t -r <Run robotic Arm Ex.> (do not provide a filename to parse)" << std::endl;
+    std::cout << "\t -w <Run rimless Wheel Ex.> (do not provide a filename to parse)" << std::endl;
 }
 
-std::map<int, MpfiWrapper> makeSampleMap(std::map<int, MpfiWrapper> const & envMap) {
-    std::map<int, MpfiWrapper> retMap;
-    for (auto p: envMap){
-        double d = p.second.getRandomSample();
-        retMap.insert(make_pair(p.first, MpfiWrapper(d)));
+int main(int argc, char * argv[]){
+    int c;
+    int numReachSteps = 15;
+    int maxDegree = 4;
+    opterr = 0;
+
+    while ((c = getopt (argc, argv, "n:d:hrw4")) != -1)
+        switch (c)
+        {
+            case 'n':
+                numReachSteps = atoi(optarg);
+                break;
+            case 'd':
+                maxDegree = atoi(optarg);
+                break;
+            case 'h':
+                printHelpMessage(argv[0]);
+                exit(1);
+                break;
+            case 'r':
+                computeRoboticArmModel(numReachSteps);
+                exit(1);
+                break;
+            case 'w':
+                computeRimlessWheel(numReachSteps);
+                exit(1);
+                break;
+            case '4':
+                fourthMomentBoundCalculation = true;
+                std::cerr << "WARNING: You are turning on 4th moment bounds -- expensive!" << std::endl;
+                break;
+            case '?':
+                if (optopt == 'n' || optopt == 's')
+                    fprintf (stderr, "Option -%c requires an argument.\n", optopt);
+                else if (isprint (optopt))
+                    fprintf (stderr, "Unknown option `-%c'.\n", optopt);
+                else
+                    fprintf (stderr,
+                             "Unknown option character `\\x%x'.\n",
+                             optopt);
+                return 1;
+            default:
+                abort ();
+        }
+
+    if (optind < argc){
+        const char * fileName = argv[optind];
+        std::cout << "Parsing file name: " << fileName << std::endl;
+        parserMain(fileName);
+
+
+        auto start = chrono::high_resolution_clock::now();
+        StateAbstractionPtr st = computeNSteps(numReachSteps, maxDegree);
+        auto end = chrono::high_resolution_clock::now();
+        double time_taken =
+                chrono::duration_cast<chrono::nanoseconds>(end - start).count();
+        time_taken *= 1e-9;
+        std::cout << "Evaluating Queries"<< std::endl;
+        globalSystem -> evaluateQueries(st);
+        auto end2 = chrono::high_resolution_clock::now();
+        double time_taken2 =
+                chrono::duration_cast<chrono::nanoseconds>(end2 - end).count();
+        time_taken2 *= 1e-9;
+        std::cout << " Time Taken: " << std::endl;
+        std::cout << "Poly form calculations: " << time_taken << std::endl;
+        std::cout << "Query evaluations: " << time_taken2 << std::endl;
+    } else {
+        printHelpMessage(argv[0]);
+        std::cerr << "No file provided" << std::endl;
     }
-    return retMap;
-}
-
-void sineAndCosineTest(){
-    /* -- Check that the sine and cosine are yielding appropriate ranges --*/
-    std::map<int, string> name_map = {{0, "x0"}, {1, "x1"}, {2, "x2"}, {3, "x3"}};
-    MultivariatePoly p0(5.0, 2);
-    p0.addToConst(3.0);
-    PowerProduct pp0, pp1, pp2;
-    pp0.setPower(0, 1);
-    pp0.setPower(2, 1);
-    p0.setTerm(pp0, 1.0);
-    pp1.setPower(1,2);
-    p0.setTerm(pp1, -2.0);
-    pp2.setPower(3, 1);
-    p0.setTerm(pp2, -0.5);
-    p0.setConst(0.1);
-    std::map<int, MpfiWrapper> env_map = {{0, MpfiWrapper(-0.1, 0.1)},
-                                  {1, MpfiWrapper(-0.05, 0.1)},
-                                  {2, MpfiWrapper(-0.05, 0.0)},
-                                  {3, MpfiWrapper(0.8, 1.2)}};
-    std::cout << "p0 = ";
-    p0.prettyPrint(std::cout, name_map);
-    std::cout << "range of p0 = " ;
-    MpfiWrapper m1 = p0.evaluate(env_map);
-    std:: cout << m1 << std::endl;
-    std::cout << "range of sine(p0) = " << sin(m1) << std::endl;
-    std::cout << "range of cosine(p0) = " << cos(m1) << std::endl;
-
-    MultivariatePoly p1 = p0.sine(env_map);
-    std::cout << "sine(p0) = p1 = " ;
-    p1.prettyPrint(std::cout, name_map);
-    std::cout << "range of p1 = " << p1.evaluate(env_map) << std::endl;
-
-    MultivariatePoly p2 = p0.cosine(env_map);
-    std::cout << "cosine(p0) = p2 = " ;
-    p2.prettyPrint(std::cout, name_map);
-    std::cout << "range of p2 = " << p2.evaluate(env_map) << std::endl;
+    return 1;
 
 
-    // Draw Samples
-    double nSamples = 10000.0;
-    MpfiWrapper mean0(0.0), mean1(0.0), mean2(0.0), mean3(0.0);
-    for (int i =0; i < (int) nSamples; ++i){
-        std::map<int, MpfiWrapper> sampleMap = makeSampleMap(env_map);
-        MpfiWrapper m0 = p0.evaluate(sampleMap);
-        mean0 = mean0 + sin(m0);
-        MpfiWrapper m1 = p1.evaluate(sampleMap);
-        mean1 = mean1  + m1;
-        MpfiWrapper m2 = p2.evaluate(sampleMap);
-        mean2 = mean2  +m2;
-        mean3 = mean3  +cos(m0);
+    //computeRoboticArmModel();
+    //computeRimlessWheel();
 
-    }
-
-    std::cout << " sine of samples: " << mean0/nSamples << std::endl;
-    std::cout << " expectation of sine approximation" << mean1/nSamples << std::endl;
-    std::cout << " cosine of samples: " << mean3/nSamples << std::endl;
-    std::cout << " expectation of cosine approximation" << mean2/nSamples << std::endl;
-
-
-
-}
-
-int main(){
-    parserMain("/Users/srirams/Projects/github/polynomialFormUncertaintyPropagation/test/test2.sys");
-    StateAbstractionPtr st = computeNSteps(6, 3);
-    std::cout << "Evaluating Queries"<< std::endl;
-    globalSystem -> evaluateQueries(st);
     //sineAndCosineTest();
     return 1;
 }

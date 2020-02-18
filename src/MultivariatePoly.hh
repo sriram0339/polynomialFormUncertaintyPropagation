@@ -261,7 +261,7 @@ namespace PolynomialForms{
         MpfiWrapper evaluate(std::map<int, MpfiWrapper> const & var_env) const;
         MpfiWrapper expectation(std::map<int, DistributionInfoPtr> const & env) const;
         MultivariatePoly multiply (MultivariatePoly const & what) const;
-
+        MultivariatePoly rangeMultiply(MultivariatePoly const & what, std::map<int, MpfiWrapper> const & var_env) const;
         MultivariatePoly squarePoly() const ;
         MultivariatePoly powPoly(int j) const;
         MultivariatePoly sine(std::map<int, MpfiWrapper> const &var_env) const ;

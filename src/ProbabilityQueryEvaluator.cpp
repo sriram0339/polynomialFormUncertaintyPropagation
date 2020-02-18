@@ -167,6 +167,7 @@ namespace PolynomialForms{
         for (auto c: componentVariances) {
             variancesSum = variancesSum + c;
         }
+       // std::cout << variancesSum << std::endl;
         double bound = variancesSum.upper() / ( (t - polynomialExpectation.upper())* (t - polynomialExpectation.upper()) );
         return bound;
     }

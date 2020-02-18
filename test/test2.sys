@@ -1,19 +1,18 @@
 var x init uniform (-0.1, 0.1)
 var y init uniform (-0.5, -0.3)
 var v init uniform (6.5,8.0)
-var psi init uniform (0.3,0.4)
-var dpsi init uniform (-0.05, 0.05)
+var psi init truncGaussian(0.1, 0.1, -1.0,1.0) 
 
-x := x + 0.1 * v * cos(psi + 0.5 * dpsi) 
-y := y + 0.1 * v * sin(psi + 0.5 * dpsi)
+
+x := x + 0.1 * v * cos(psi) 
+y := y + 0.1 * v * sin(psi)
 v := v + 0.1 * ( -0.5 * (v - 10) + uniform(-0.1, 0.1))
-psi :=  psi + dpsi 
-dpsi := uniform(-0.1, 0.1) -  0.1 * psi
+psi :=  truncGaussian(0.1, 0.1, -1.0,1.0) 
 
 query q0 expectation x
 query q1 expectation y
 query q2 expectation v
 query q3 expectation psi
-query p0 x >= 5.5
-query p1 y >= 2.5
+query p0 x >= 7
+query p1 y >= 2
 end

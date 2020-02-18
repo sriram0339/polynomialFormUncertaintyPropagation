@@ -55,7 +55,7 @@ namespace PolynomialForms {
     }
 
 
-    int trig_num_terms = 3;
+    int trig_num_terms = 5;
 
     trig_deriv_t nextDeriv(trig_deriv_t state) {
         switch (state){
@@ -218,6 +218,25 @@ namespace PolynomialForms {
         }
         retPoly.setConst(constPart);
         return retPoly;
+    }
+
+    MultivariatePoly MultivariatePoly::rangeMultiply(const MultivariatePoly &what,
+            const std::map<int, MpfiWrapper> &var_env) const {
+        MultivariatePoly tmp1 = *this;
+        MpfiWrapper crng1 = constIntvl - median(constIntvl);
+        tmp1.setConst(median(constIntvl));
+        MpfiWrapper rng1 = tmp1.evaluate(var_env);
+
+        MultivariatePoly tmp2 = what;
+        MpfiWrapper crng2 = tmp2.getConstIntvl();
+        tmp2.setConst(median(crng2));
+        crng2 = crng2 - median(crng2);
+        MpfiWrapper rng2 = tmp2.evaluate(var_env);
+
+        MpfiWrapper uncertaintyIntvl = rng2 * crng1 + rng1 * crng2;
+        MultivariatePoly resPoly = tmp1.multiply(tmp2);
+        resPoly.addToConst(uncertaintyIntvl);
+        return resPoly;
     }
 
 

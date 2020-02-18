@@ -4,9 +4,11 @@
 
 #include "ProbabilityQueryEvaluator.hh"
 #include "SystemDescription.hh"
-
+#include <chrono>
 
 namespace PolynomialForms{
+
+    extern bool fourthMomentBoundCalculation;
 
     int StochasticSystem::addVar(std::string varName, DistributionInfoPtr dPtr) {
         int varID = numStateVars;
@@ -74,8 +76,10 @@ namespace PolynomialForms{
                     pqe.separatePolynomialIntoComponents();
                     double bnd = pqe.computeChebyshevBounds();
                     std::cout << "Chebyshev bounds: " << bnd << std::endl;
-                    //double bnd4 = pqe.computeFourthMomentBound();
-                    //std::cout << "Fourth moment bounds: " << bnd4 << std::endl;
+                    if (fourthMomentBoundCalculation) {
+                        double bnd4 = pqe.computeFourthMomentBound();
+                        std::cout << "Fourth moment bounds: " << bnd4 << std::endl;
+                    }
                     std::cout << "Chernoff Bounds:" << pqe.computeChernoffBound() << std::endl;
                 }
                     break;
