@@ -1,0 +1,20 @@
+var x init uniform (0.5, 0.6)
+var th init uniform (-0.3, 0.3)
+var dx init uniform (-0.1, 0.1)
+var dth init uniform (-0.1, 0.1)
+
+x := x + dx * 0.1 + 0.03 * 0.31 * truncGaussian(0.0, 1.0, -6, 6)
+th := th + dth * 0.1 + 0.03 * 0.31 * truncGaussian(0.0, 1.0, -6, 6)
+dx := dx + 0.1 * ( -0.75 * th * th * th - 0.01 * th * th * ( -10 * x + 289.83 * th - 19.53 * dx + 63.25 * dth) - 0.05 * th * dth * dth + 0.98 * th + 0.1 * ( -10 * x + 289.83 * th - 19.53 * dx + 63.25 * dth) ) + 0.1 * 0.31 * truncGaussian(0.0, 1.0, -6, 6)
+dth := dth + 0.1 * ( -5.75 * th * th * th - 0.12 * th * th * ( -10 * x + 289.83 * th - 19.53 * dx + 63.25 * dth)   - 0.1 * th * dth * dth + 21.56 * th + 0.2 * ( -10 * x + 289.83 * th - 19.53 * dx + 63.25 * dth) ) + 0.1 * 0.31 * truncGaussian(0.0, 1.0, -6, 6)
+
+
+query q0 expectation x
+query q1 expectation th
+query q2 expectation dx
+query q3 expectation dth
+query p1 th <= - 0.5
+query p2 th >= 0.5
+query p3 x <= -4
+query p4 x >= 4
+end

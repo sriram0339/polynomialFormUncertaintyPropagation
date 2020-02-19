@@ -211,7 +211,7 @@ namespace PolynomialForms{
             separatePolynomialIntoComponents();
         }
         t = t + s;
-        std::cout << " Finding bounds for P( p+I >= "<< s << ")" << std::endl;
+        printPolyStats();
         double chBoundsLog = computeChernoffBound();
         double chBounds = exp(chBoundsLog);
         std::cout << "\t Chernoff Bounds: e^{" << chBoundsLog  << "} = " << chBounds << std::endl;
