@@ -45,7 +45,7 @@ struct RimlessWheelMdl {
     }
 
     /*-- Model actual dynamics --*/
-    void symbolicSimulateSystem(int numReps) {
+    void symbolicSimulateSystem(int numReps, double meanParam = 8.0) {
         auto start = chrono::high_resolution_clock::now();
         int x0 = createUniform(-0.1, 0.1); // Initialize x
         MpfiWrapper theta(30.0);
@@ -54,7 +54,7 @@ struct RimlessWheelMdl {
         MultivariatePoly x(1.0, x0);
         MpfiWrapper gByL(10.0);
         for (int i = 0; i < numReps; ++i){
-            int wVar = createTruncGaussian(8, 1.5, 0, 16);
+            int wVar = createTruncGaussian(meanParam, 1.5, meanParam-9, meanParam+9);
             MultivariatePoly wPoly(1.0, wVar);
             MultivariatePoly beta1(piBy180 * theta/2.0);
             beta1.scaleAndAddAssign(piBy180, wPoly); // beta1 = pi/180 (theta/2 + w)
@@ -88,11 +88,11 @@ struct RimlessWheelMdl {
         ProbabilityQueryEvaluator pqe1(x,dInfo);
         std::cout << "P(x <= 0) <= ??" << std::endl;
         pqe1.separatePolynomialIntoComponents();
-        std::cout << "Chernoff Bounds: " << pqe1.computeChernoffBound() << std::endl;
-        std::cout << "Chebyshev Bounds: " << pqe1.computeChebyshevBounds() << std::endl;
-        if (fourthMomentBoundCalculation) {
-            std::cout << "Fourth moment bounds:" << pqe1.computeFourthMomentBound() << std::endl;
-        }
+        pqe1.printPolyStats();
+        pqe1.computeBestUpperTailBounds(0.0);
+
+
+
 
         auto end2 = chrono::high_resolution_clock::now();
         double time_taken2 =
@@ -106,8 +106,8 @@ struct RimlessWheelMdl {
 
 };
 
-void computeRimlessWheel(int numReachSteps){
+void computeRimlessWheel(int numReachSteps, double meanParam){
     RimlessWheelMdl rmw;
     std::cout << "Running rimless wheel model for " << numReachSteps <<" steps" << std::endl;
-    rmw.symbolicSimulateSystem(numReachSteps);
+    rmw.symbolicSimulateSystem(numReachSteps, meanParam);
 }

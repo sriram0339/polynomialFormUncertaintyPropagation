@@ -16,15 +16,15 @@ namespace PolynomialForms{
 using namespace PolynomialForms;
 
 extern void computeRoboticArmModel(int numReachSteps);
-extern void computeRimlessWheel(int numReachSteps);
+extern void computeRimlessWheel(int numReachSteps, double meanParam);
 
 void printHelpMessage(const char * progName){
     std::cout << "Usage: " << progName << " [options] [optional file name to parse]" << std::endl;
     std::cout << "Options: "<<std::endl;
-    std::cout << "\t -n <number of time steps> " << std::endl;
-    std::cout << "\t -d <max poly form degree> " << std::endl;
-    std::cout << "\t -r <Run robotic Arm Ex.> (do not provide a filename to parse)" << std::endl;
-    std::cout << "\t -w <Run rimless Wheel Ex.> (do not provide a filename to parse)" << std::endl;
+    std::cout << "\t -n <number of time steps> -- Number of steps to run " << std::endl;
+    std::cout << "\t -d <max poly form degree> -- Set max polynomial form degree " << std::endl;
+    std::cout << "\t -r                        -- Run robotic Arm Ex. (do not provide a filename to parse)" << std::endl;
+    std::cout << "\t -w <meanParameterValue>   -- Run rimless Wheel Ex. (do not provide a filename to parse)" << std::endl;
 }
 
 int main(int argc, char * argv[]){
@@ -33,7 +33,7 @@ int main(int argc, char * argv[]){
     int maxDegree = 4;
     opterr = 0;
 
-    while ((c = getopt (argc, argv, "n:d:hrw4")) != -1)
+    while ((c = getopt (argc, argv, "n:d:hrw:4")) != -1)
         switch (c)
         {
             case 'n':
@@ -50,9 +50,12 @@ int main(int argc, char * argv[]){
                 computeRoboticArmModel(numReachSteps);
                 exit(1);
                 break;
-            case 'w':
-                computeRimlessWheel(numReachSteps);
+            case 'w': {
+                double meanParam = atof(optarg);
+                std::cout << "Rimless Wheel mean Param: " << meanParam << std::endl;
+                computeRimlessWheel(numReachSteps, meanParam);
                 exit(1);
+            }
                 break;
             case '4':
                 fourthMomentBoundCalculation = true;

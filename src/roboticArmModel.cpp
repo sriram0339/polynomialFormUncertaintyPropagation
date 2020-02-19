@@ -77,14 +77,17 @@ struct ModelSimulation {
 
         std::cout << "E(x) = " << x.expectation(dInfo)<< std::endl;
         std::cout << "Range(x) = " << x.evaluate(env) << std::endl;
-        x.addToConst(-277.0);
         ProbabilityQueryEvaluator pqe(x, dInfo);
         pqe.separatePolynomialIntoComponents();
-        std::cout << "Chebyshev Bounds: " << pqe.computeChebyshevBounds() << std::endl;
-        std::cout << "Chernoff Bounds: " << pqe.computeChernoffBound() << std::endl;
-        if (fourthMomentBoundCalculation) {
-            std::cout << "Fourth Moment Bounds: " << pqe.computeFourthMomentBound() << std::endl;
-        }
+        pqe.printPolyStats();
+
+        pqe.computeBestUpperTailBounds(272.0);
+
+        pqe.computeBestUpperTailBounds(274.0);
+
+        pqe.computeBestUpperTailBounds(275.0);
+
+        pqe.computeBestUpperTailBounds(277.0);
 
         auto end2 = chrono::high_resolution_clock::now();
         double time_taken2 =

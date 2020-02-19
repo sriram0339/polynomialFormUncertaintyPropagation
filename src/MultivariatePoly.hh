@@ -178,6 +178,16 @@ namespace PolynomialForms{
             terms.insert(std::make_pair(pp, what));
         }
 
+        int degree() const {
+            int maxDegree = 0;
+            for (auto p: terms){
+                int d = p.first.totalDegree();
+                if (d > maxDegree)
+                    maxDegree = d;
+            }
+            return maxDegree;
+        }
+
         std::map<PowerProduct, MpfiWrapper> getTerms() const { return terms;}
         MpfiWrapper getConstIntvl() const {return constIntvl; }
         std::set<PowerProduct> getPowerProducts() const {

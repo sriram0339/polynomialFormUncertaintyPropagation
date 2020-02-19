@@ -8,6 +8,7 @@
 
 namespace PolynomialForms{
     extern bool debug;
+    extern bool fourthMomentBoundCalculation;
 
     class NoiseSymbolGraph {
     protected:
@@ -180,7 +181,7 @@ namespace PolynomialForms{
             denSum = denSum + (rng.upper() - rng.lower()) * (rng.upper() - rng.lower());
         }
         double expFactor = - 2* s * s / denSum;
-        return exp(expFactor);
+        return expFactor;
     }
 
 
@@ -202,6 +203,65 @@ namespace PolynomialForms{
         double bound = fourthMomentSum.upper() / denom;
         return bound;
 
+    }
+
+
+    void ProbabilityQueryEvaluator::computeBestUpperTailBounds(double s) {
+        if (splitComponents.size() <= 0){
+            separatePolynomialIntoComponents();
+        }
+        t = t + s;
+        std::cout << " Finding bounds for P( p+I >= "<< s << ")" << std::endl;
+        double chBoundsLog = computeChernoffBound();
+        double chBounds = exp(chBoundsLog);
+        std::cout << "\t Chernoff Bounds: e^{" << chBoundsLog  << "} = " << chBounds << std::endl;
+        std::cout << "\t Chebyshev Bounds:  " << computeChebyshevBounds() << std::endl;
+        double bernsteinBoundsLog = computeBernsteinBound();
+        double bernsteinBounds = exp(bernsteinBoundsLog);
+        std::cout << "\t Bernstein Bounds: e^{" << bernsteinBoundsLog << "}=" << bernsteinBounds << std::endl;
+
+        if (fourthMomentBoundCalculation){
+            double fourthMomentBound = computeFourthMomentBound();
+            std::cout << "\t Fourth Moment Bounds: " << fourthMomentBound << std::endl;
+        }
+        t = t - s;
+    }
+
+    double ProbabilityQueryEvaluator::computeBernsteinBound() const {
+        /*
+         * Bernstein bounds.
+         *    X1... Xn are random variables with E(Xi) = 0
+         */
+        double s = t - polynomialExpectation.upper();
+        double M = 0;
+        for (auto c: splitComponents){
+            MpfiWrapper crng = c.evaluate(distributionRanges);
+            double Mhat = max(fabs(crng.upper()), fabs(crng.lower()));
+            M = max(M, Mhat);
+        }
+        double sumOfVariances;
+        for (auto cvar: componentVariances) {
+            sumOfVariances = sumOfVariances + cvar.upper();
+        }
+        std::cout << "Debug: Bernstein inequality: M = " << M << std::endl;
+        double expFactor = -0.5 * s*s/(sumOfVariances + M * s/3.0 );
+        return expFactor;
+    }
+
+    void ProbabilityQueryEvaluator::printPolyStats() {
+        std::cout << "Stats about polynomial form in query evaluation. " << std::endl;
+        std::cout << "Number of noise symbols: " << distributionInfo.size() << std::endl;
+        std::cout << "Total Degree: " << mp.degree() << std::endl;
+        std::cout << "Num Terms: " << mp.getTerms().size()<< std::endl;
+        std::cout << "Number of split polynomials: " << splitComponents.size() <<std::endl;
+        int largestSplitComp = 0;
+        for (auto c: splitComponents){
+            int j = c.getTerms().size();
+            if (j > largestSplitComp){
+                largestSplitComp = j;
+            }
+        }
+        std::cout << "Largest size split component (number of terms): " << largestSplitComp << std::endl;
     }
 
 

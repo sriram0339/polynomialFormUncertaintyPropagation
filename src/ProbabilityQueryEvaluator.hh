@@ -33,10 +33,15 @@ namespace PolynomialForms {
             }
         }
 
+        void printPolyStats();
         void separatePolynomialIntoComponents();
         double computeChebyshevBounds() const;
+        // Note this computes the log_e(bound). The user should compute exp(bound) returned by this function.
         double computeChernoffBound() const;
+        // Note this computes the log_e(bound). The user should compute exp(bound) returned by this function.
+        double computeBernsteinBound() const;
         double computeFourthMomentBound() const;
+        void computeBestUpperTailBounds(double t);
 
 
     };
