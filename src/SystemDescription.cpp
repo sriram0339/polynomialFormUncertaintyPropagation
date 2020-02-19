@@ -74,14 +74,8 @@ namespace PolynomialForms{
                 case PROB_QUERY: {
                     ProbabilityQueryEvaluator pqe(p, st->getNoiseSymbolInfoMap());
                     pqe.separatePolynomialIntoComponents();
-                    double bnd = pqe.computeChebyshevBounds();
-                    std::cout << "Chebyshev bounds: " << bnd << std::endl;
-                    if (fourthMomentBoundCalculation) {
-                        double bnd4 = pqe.computeFourthMomentBound();
-                        std::cout << "Fourth moment bounds: " << bnd4 << std::endl;
-                    }
-                    std::cout << "Chernoff Bounds:" << pqe.computeChernoffBound() << std::endl;
-                }
+                    pqe.computeBestUpperTailBounds(0.0);
+                };
                     break;
                 case EXPECT_QUERY: {
                     MpfiWrapper r = p.expectation(st->getNoiseSymbolInfoMap());

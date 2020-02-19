@@ -4,6 +4,7 @@
 
 #include "MpfiWrapper.hh"
 #include "MultivariatePoly.hh"
+#include <cmath>
 
 namespace PolynomialForms {
 
@@ -204,12 +205,16 @@ namespace PolynomialForms {
         out << std::endl;
     }
 
+    bool isTooSmall(MpfiWrapper s){
+        return fabs(s.upper()) <= 1E-08 && fabs(s.lower()) <= 1E-08;
+    }
+
     MultivariatePoly MultivariatePoly::truncate(int maxDegree,
             std::map<int, MpfiWrapper> const &var_env ) const {
         MpfiWrapper constPart = constIntvl;
         MultivariatePoly retPoly(constIntvl);
         for (auto p: terms){
-            if (p.first.totalDegree() <= maxDegree){
+            if (p.first.totalDegree() <= maxDegree && !isTooSmall(p.second)){
                 retPoly.setTerm(p.first, p.second);
             } else {
                 MpfiWrapper intvl = p.first.evaluate(var_env);
