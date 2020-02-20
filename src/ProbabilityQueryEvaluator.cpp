@@ -174,7 +174,9 @@ namespace PolynomialForms{
     }
 
     double ProbabilityQueryEvaluator::computeChernoffBound() const {
+        std::cout << "Chernoff: E(X) = " << polynomialExpectation << std::endl;
         double s = t - polynomialExpectation.upper();
+        std::cout << "Debug: Chernoff bounds -- X - E(X) >= " << s << std::endl;
         double denSum = 0;
         for (auto c: splitComponents){
             MpfiWrapper rng = c.evaluate(distributionRanges);
@@ -210,9 +212,9 @@ namespace PolynomialForms{
         if (splitComponents.size() <= 0){
             separatePolynomialIntoComponents();
         }
+        std::cout << "Evaluating probability query with bound " << s << std::endl;
 
-        MpfiWrapper expect = mp.expectation(distributionInfo);
-        if (expect.lower() < t + s && expect.upper() > t+s ){
+        if (expect.lower() < s && expect.upper() > s ){
             std::cerr << "WARNING:  uncertainty in expectation of the query overlaps with the bound " << std::endl;
             std::cerr << "Please examine the bounds carefully -- they may not be valid!" << std::endl;
         }

@@ -20,20 +20,16 @@ namespace PolynomialForms {
         std::vector<MpfiWrapper> componentRanges;
         std::vector<MpfiWrapper> componentVariances;
         MpfiWrapper polynomialExpectation;
-
+        MpfiWrapper expect;
         double t;
     public:
         ProbabilityQueryEvaluator(MultivariatePoly const & mp_, std::map<int, DistributionInfoPtr > const & dInfo_):
         mp(mp_), distributionInfo(dInfo_){
-            MpfiWrapper expect = mp.expectation(distributionInfo);
-            if (expect.lower() < 0.0 && expect.upper() > 0.0 ){
-                std::cerr << "WARNING:  uncertainty in expectation of the query overlaps with the bound " << std::endl;
-                std::cerr << "Please examine the bounds carefully -- they may not be valid!" << std::endl;
-            }
-
+            expect = mp.expectation(distributionInfo);
             MpfiWrapper cTerm = mp.constantIntvl();
             mp.setConst(0);
-            t = - cTerm.lower(); // p + [l,u] >= 0 only if p >= -l
+            t = - cTerm.upper(); // if p + [l,u] >= 0  then p >= -u Pr(p + [l,u] >= 0) <= P(p >= -u) <= ..
+            std::cout << "Debug: Converting p +  " << cTerm << " >= s into p >= s + " << t << std::endl;
             for (auto p: distributionInfo){
                 distributionRanges.insert(std::make_pair(p.first, p.second->getRange()));
             }

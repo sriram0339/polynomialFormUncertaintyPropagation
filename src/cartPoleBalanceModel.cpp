@@ -161,10 +161,10 @@ struct ModelSimulation {
         pqe1.computeBestUpperTailBounds(3.1415/6);
 
         ProbabilityQueryEvaluator pqe2(x, dInfo);
-        std::cout << "Computing tail probability P(x >= 4.0) <= ??" << std::endl;
+        std::cout << "Computing tail probability P(x >= 2.0) <= ??" << std::endl;
         pqe2.separatePolynomialIntoComponents();
         pqe2.printPolyStats();
-        pqe2.computeBestUpperTailBounds(4.0);
+        pqe2.computeBestUpperTailBounds(2.0);
 
         auto end2 = chrono::high_resolution_clock::now();
         double time_taken2 =

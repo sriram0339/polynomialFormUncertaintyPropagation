@@ -80,7 +80,7 @@ struct ModelSimulation {
         ProbabilityQueryEvaluator pqe(x, dInfo);
         pqe.separatePolynomialIntoComponents();
         pqe.printPolyStats();
-
+        std::cout << "Evaluating upper tail bounds on x " << std::endl;
         pqe.computeBestUpperTailBounds(272.0);
 
         pqe.computeBestUpperTailBounds(274.0);
