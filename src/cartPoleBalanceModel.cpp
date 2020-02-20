@@ -20,7 +20,7 @@ inline MpfiWrapper deg2rad(double ang){
     MpfiWrapper angRad = MpfiWrapper(ang) *pi/MpfiWrapper(180.0);
     return angRad;
 }
-struct ModelSimulation {
+struct CartPoleModelSimulation {
     int randomVarID = 0;
     map<int, DistributionInfoPtr> dInfo;
     map<int, MpfiWrapper> env;
@@ -344,13 +344,13 @@ struct ModelSimulation {
 };
 
 void computeCartPoleModel(int maxDegree, int numReps){
-    ModelSimulation s;
+    CartPoleModelSimulation s;
     std::cout << "Running cartpole (polynomial) model for " << numReps <<" steps" << std::endl;
     s.symbolicSimulateSystem(maxDegree, numReps);
 }
 
 void computeCartPoleNonPolyModel(int maxDegree, int numReps){
-    ModelSimulation s;
+    CartPoleModelSimulation s;
     std::cout << "Running cartpole (non polynomial) model for " << numReps <<" steps" << std::endl;
     s.symbolicSimulateNonPolynomialSystem(maxDegree, numReps);
 }
