@@ -225,6 +225,18 @@ namespace PolynomialForms {
         return retPoly;
     }
 
+    void MultivariatePoly::truncateAssign(int maxDegree,  std::map<int, MpfiWrapper> const &var_env ) {
+       // MpfiWrapper constPart = constIntvl;
+        for (auto it = terms.cbegin(); it != terms.cend() /* not hoisted */; /* no increment */)
+            if (it -> first.totalDegree() > maxDegree || isTooSmall(it -> second)){
+                MpfiWrapper intvl = it -> first.evaluate(var_env);
+                constIntvl = constIntvl + intvl * it -> second;
+                terms.erase(it++);
+            } else {
+                ++it;
+            }
+        }
+
     MultivariatePoly MultivariatePoly::rangeMultiply(const MultivariatePoly &what,
             const std::map<int, MpfiWrapper> &var_env) const {
         MultivariatePoly tmp1 = *this;

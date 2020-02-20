@@ -51,6 +51,7 @@ struct ModelSimulation {
         MultivariatePoly y(1.0, v1);
 
         for (int i = 0; i < numReps; ++i){
+            std::cout << "i = " << i << std::endl;
             for (double ang: angles){
                 int dVar = createUniform(0.98, 1.02);
                 MultivariatePoly dPoly(1.0, dVar);
@@ -64,17 +65,18 @@ struct ModelSimulation {
                 MultivariatePoly tmp3 = tPoly.sine(env);
                 MultivariatePoly tmp4 = tmp3.rangeMultiply(dPoly, env);
                 y.scaleAndAddAssign(1.0, tmp4);
-                x = x.truncate(maxDegree, env);
-                y = y.truncate(maxDegree, env);
+                x.truncateAssign(maxDegree, env);
+                y.truncateAssign(maxDegree, env);
 
             }
-            std::cout << "After " << i << "Cycles:" << std::endl;
-            std::cout << "x = " << std::endl;
-            x.prettyPrint(std::cout, std::map<int, string> ());
-            std::cout << "y = " << std::endl;
-            y.prettyPrint(std::cout, std::map<int, string>());
+
         }
 
+        std::cout << "After " << numReps << "Cycles:" << std::endl;
+        std::cout << "x = " << std::endl;
+        x.prettyPrint(std::cout, std::map<int, string> ());
+        std::cout << "y = " << std::endl;
+        y.prettyPrint(std::cout, std::map<int, string>());
         auto end = chrono::high_resolution_clock::now();
         double time_taken =
                 chrono::duration_cast<chrono::nanoseconds>(end - start).count();

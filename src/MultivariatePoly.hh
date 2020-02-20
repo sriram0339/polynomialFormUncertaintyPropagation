@@ -277,7 +277,7 @@ namespace PolynomialForms{
         MultivariatePoly sine(std::map<int, MpfiWrapper> const &var_env) const ;
         MultivariatePoly cosine(std::map<int, MpfiWrapper> const &var_env) const;
       //  MultivariatePoly exp(std::map<int, MpfiWrapper> const &var_env) const ;
-
+        void truncateAssign(int maxDegree,  std::map<int, MpfiWrapper> const &var_env );
         MultivariatePoly truncate(int maxDegree, std::map<int, MpfiWrapper> const &var_env) const;
         void centerAssign(std::map<int, MpfiWrapper> const &var_env);
         void prettyPrint(ostream & out, std::map<int, string> const & name_env) const;
