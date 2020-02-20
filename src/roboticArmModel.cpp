@@ -18,7 +18,7 @@ inline MpfiWrapper deg2rad(double ang){
     MpfiWrapper angRad = MpfiWrapper(ang) *pi/MpfiWrapper(180.0);
     return angRad;
 }
-struct ModelSimulation {
+struct RoboticArmModelSimulation {
     int randomVarID = 0;
     map<int, DistributionInfoPtr> dInfo;
     map<int, MpfiWrapper> env;
@@ -110,7 +110,7 @@ struct ModelSimulation {
 };
 
 void computeRoboticArmModel(int maxDegree, int numReps){
-    ModelSimulation s;
+    RoboticArmModelSimulation s;
     std::cout << "Running robotic arm model for " << numReps <<" steps" << std::endl;
     s.symbolicSimulateSystem(maxDegree, numReps);
 }
