@@ -15,7 +15,7 @@ namespace PolynomialForms{
 
 using namespace PolynomialForms;
 
-extern void computeRoboticArmModel(int numReachSteps);
+extern void computeRoboticArmModel(int maxDegree, int numReachSteps);
 extern void computeRimlessWheel(int numReachSteps, double meanParam);
 extern void computeCartPoleModel(int maxDegree, int numReps);
 void computeCartPoleNonPolyModel(int maxDegree, int numReps);
@@ -48,7 +48,7 @@ int main(int argc, char * argv[]){
                 exit(1);
                 break;
             case 'r':
-                computeRoboticArmModel(numReachSteps);
+                computeRoboticArmModel(maxDegree, numReachSteps);
                 exit(1);
                 break;
             case 'c':

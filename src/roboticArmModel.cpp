@@ -42,7 +42,7 @@ struct ModelSimulation {
 
     }
 
-    void symbolicSimulateSystem(int numReps) {
+    void symbolicSimulateSystem(int maxDegree, int numReps) {
         auto start = chrono::high_resolution_clock::now();
         vector<double> angles = {10, 60, 110, 160, 140, 100, 60, 20, 10, 0};
         int v0 = createTruncGaussian(0.0, 0.05, -0.5, 0.5);
@@ -64,10 +64,15 @@ struct ModelSimulation {
                 MultivariatePoly tmp3 = tPoly.sine(env);
                 MultivariatePoly tmp4 = tmp3.rangeMultiply(dPoly, env);
                 y.scaleAndAddAssign(1.0, tmp4);
+                x = x.truncate(maxDegree, env);
+                y = y.truncate(maxDegree, env);
 
             }
-            //x.prettyPrint(std::cout, std::map<int, string> ());
-            //y.prettyPrint(std::cout, std::map<int, string>());
+            std::cout << "After " << i << "Cycles:" << std::endl;
+            std::cout << "x = " << std::endl;
+            x.prettyPrint(std::cout, std::map<int, string> ());
+            std::cout << "y = " << std::endl;
+            y.prettyPrint(std::cout, std::map<int, string>());
         }
 
         auto end = chrono::high_resolution_clock::now();
@@ -102,8 +107,8 @@ struct ModelSimulation {
 
 };
 
-void computeRoboticArmModel(int numReps){
+void computeRoboticArmModel(int maxDegree, int numReps){
     ModelSimulation s;
     std::cout << "Running robotic arm model for " << numReps <<" steps" << std::endl;
-    s.symbolicSimulateSystem(numReps);
+    s.symbolicSimulateSystem(maxDegree, numReps);
 }
