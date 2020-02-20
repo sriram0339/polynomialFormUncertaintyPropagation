@@ -129,7 +129,7 @@ namespace PolynomialForms {
         tmpPoly = tmpPoly.multiply(qPoly); // tmp = (p-c)^{i+1}
         fact = fact * MpfiWrapper((double) i); // i = num_trig_terms + 1
         MpfiWrapper remRange;
-        rng = rng - c ; // correct the range by subtracting the center point
+        //   rng = rng - c ; // correct the range by subtracting the center point
         switch (derivState) {
             case PLUS_SINE:
                 remRange = sin(rng)/fact;
@@ -146,9 +146,9 @@ namespace PolynomialForms {
         }
 
 
-        MpfiWrapper polyRange = tmpPoly.evaluate(var_env);
-        MpfiWrapper lagrangeRem = remRange * polyRange;
-        retPoly.addToConst(lagrangeRem);
+        //MpfiWrapper polyRange = tmpPoly.evaluate(var_env);
+        retPoly.scaleAndAddAssign(remRange, tmpPoly);
+        retPoly.centerAssign(var_env);
         return retPoly;
 
     }
@@ -206,7 +206,7 @@ namespace PolynomialForms {
     }
 
     bool isTooSmall(MpfiWrapper s){
-        return fabs(s.upper()) <= 1E-08 && fabs(s.lower()) <= 1E-08;
+        return fabs(s.upper()) <= 1E-10 && fabs(s.lower()) <= 1E-10;
     }
 
     MultivariatePoly MultivariatePoly::truncate(int maxDegree,
@@ -214,7 +214,7 @@ namespace PolynomialForms {
         MpfiWrapper constPart = constIntvl;
         MultivariatePoly retPoly(constIntvl);
         for (auto p: terms){
-            if (p.first.totalDegree() <= maxDegree && !isTooSmall(p.second)){
+            if (p.first.totalDegree() <= maxDegree  && !isTooSmall(p.second)){
                 retPoly.setTerm(p.first, p.second);
             } else {
                 MpfiWrapper intvl = p.first.evaluate(var_env);
@@ -242,6 +242,54 @@ namespace PolynomialForms {
         MultivariatePoly resPoly = tmp1.multiply(tmp2);
         resPoly.addToConst(uncertaintyIntvl);
         return resPoly;
+    }
+
+    void MultivariatePoly::centerAssign(std::map<int, MpfiWrapper> const & env) {
+        /*
+         * Make sure that all terms have coefficients are centered around their median
+         * Addd the rest to the const Interval
+         */
+
+        for (auto & p : terms ){
+            MpfiWrapper c = median(p.second);
+            MpfiWrapper e = p.second - c;
+            MpfiWrapper r = p.first.evaluate(env) * e;
+            constIntvl = constIntvl + r;
+            p.second = c;
+        }
+        return;
+    }
+
+    int num_recip_terms = 4;
+
+    MultivariatePoly MultivariatePoly::reciprocal(std::map<int, MpfiWrapper> const & var_env) const {
+        MpfiWrapper rng = this -> evaluate(var_env);
+        // Choose the center point of this range.
+        MpfiWrapper c = median(rng);
+        if (rng.lower() <= 0.0 && rng.upper() >= 0.0){
+            std::cout << "Error: taking reciprocal of a range that contains zero " << std::endl;
+            assert(false);
+        }
+        MpfiWrapper recip = inverse(c);
+        MultivariatePoly retPoly(recip);
+        MultivariatePoly qPoly(*this);
+        qPoly.addToConst(-1.0 * c);
+
+        MultivariatePoly tmpPoly(1.0);
+        MpfiWrapper fact(1.0);
+        int i;
+        for (i = 1; i <= num_recip_terms; ++i ){
+            tmpPoly = tmpPoly.multiply(qPoly); // tmpPoly = (p - c)^i
+            MpfiWrapper curDeriv = pow(-1.0, i) * pow(recip, (i+1));
+            retPoly.scaleAndAddAssign(curDeriv, tmpPoly, true);
+        }
+
+        MpfiWrapper recipRange = inverse(rng);
+        MpfiWrapper rem = pow(-1.0, i) * pow(recipRange, i+1);
+        tmpPoly = tmpPoly.multiply(qPoly);
+        retPoly.scaleAndAddAssign(rem, tmpPoly, true);
+        retPoly.centerAssign(var_env);
+        return retPoly;
     }
 
 

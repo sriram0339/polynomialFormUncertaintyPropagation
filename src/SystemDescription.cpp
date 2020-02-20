@@ -32,8 +32,8 @@ namespace PolynomialForms{
         }
     }
 
-    StateAbstractionPtr StochasticSystem::initialize() {
-        StateAbstractionPtr st = std::make_shared<StateAbstraction>();
+    StateAbstractionPtr StochasticSystem::initialize(int maxDegree) {
+        StateAbstractionPtr st = std::make_shared<StateAbstraction>(maxDegree);
         st -> initialize(initialDistrib);
         return st;
     }

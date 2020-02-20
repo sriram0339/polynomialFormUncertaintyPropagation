@@ -16,9 +16,14 @@ namespace PolynomialForms{
         std::map<int, MultivariatePoly> stateVarMap;
         std::map<int, DistributionInfoPtr >  distributionInfo;
         int numNoiseSymbols;
+        int maxDegree;
 
     public:
-        StateAbstraction(): numNoiseSymbols(0) {};
+        StateAbstraction(int maxDegree_=4): numNoiseSymbols(0), maxDegree(maxDegree_) {};
+
+        int getMaxDegree(){
+            return maxDegree;
+        }
 
         int getNewNoiseSymbol(){
             int id = numNoiseSymbols;

@@ -25,6 +25,12 @@ namespace PolynomialForms {
     public:
         ProbabilityQueryEvaluator(MultivariatePoly const & mp_, std::map<int, DistributionInfoPtr > const & dInfo_):
         mp(mp_), distributionInfo(dInfo_){
+            MpfiWrapper expect = mp.expectation(distributionInfo);
+            if (expect.lower() < 0.0 && expect.upper() > 0.0 ){
+                std::cerr << "WARNING:  uncertainty in expectation of the query overlaps with the bound " << std::endl;
+                std::cerr << "Please examine the bounds carefully -- they may not be valid!" << std::endl;
+            }
+
             MpfiWrapper cTerm = mp.constantIntvl();
             mp.setConst(0);
             t = - cTerm.lower(); // p + [l,u] >= 0 only if p >= -l

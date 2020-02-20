@@ -21,6 +21,7 @@ namespace PolynomialForms {
       std::map<int, ExprPtr> updates;
       std::map<int, DistributionInfoPtr> initialDistrib;
       std::vector<Query> queries;
+
   public:
 
       StochasticSystem(){}
@@ -45,7 +46,7 @@ namespace PolynomialForms {
           return initialDistrib;
       }
 
-      StateAbstractionPtr initialize();
+      StateAbstractionPtr initialize(int maxDegree =4);
       void computeOneStep(StateAbstractionPtr st, int maxDegree = -1);
 
       void prettyPrintStateAbstraction(std::ostream & what, StateAbstractionPtr st);

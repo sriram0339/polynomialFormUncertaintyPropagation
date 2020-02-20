@@ -279,9 +279,12 @@ namespace PolynomialForms{
       //  MultivariatePoly exp(std::map<int, MpfiWrapper> const &var_env) const ;
 
         MultivariatePoly truncate(int maxDegree, std::map<int, MpfiWrapper> const &var_env) const;
+        void centerAssign(std::map<int, MpfiWrapper> const &var_env);
         void prettyPrint(ostream & out, std::map<int, string> const & name_env) const;
         MpfiWrapper constantIntvl() const { return constIntvl; };
 
+
+        MultivariatePoly reciprocal(std::map<int, MpfiWrapper> const & var_env) const;
 
     };
 };

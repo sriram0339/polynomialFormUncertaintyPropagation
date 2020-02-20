@@ -23,7 +23,7 @@ void parserMain(const char * fileName){
 
 
 StateAbstractionPtr computeNSteps(int n, int maxDegree){
-    StateAbstractionPtr st = globalSystem -> initialize();
+    StateAbstractionPtr st = globalSystem -> initialize(maxDegree);
     for (int i = 0 ; i < n; ++i){
         std::cout << "After " << i << " Steps" << std::endl;
         globalSystem -> prettyPrintStateAbstraction(std::cout, st);

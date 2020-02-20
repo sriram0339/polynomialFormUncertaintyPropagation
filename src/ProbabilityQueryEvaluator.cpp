@@ -210,6 +210,12 @@ namespace PolynomialForms{
         if (splitComponents.size() <= 0){
             separatePolynomialIntoComponents();
         }
+
+        MpfiWrapper expect = mp.expectation(distributionInfo);
+        if (expect.lower() < t + s && expect.upper() > t+s ){
+            std::cerr << "WARNING:  uncertainty in expectation of the query overlaps with the bound " << std::endl;
+            std::cerr << "Please examine the bounds carefully -- they may not be valid!" << std::endl;
+        }
         t = t + s;
         printPolyStats();
         double chBoundsLog = computeChernoffBound();

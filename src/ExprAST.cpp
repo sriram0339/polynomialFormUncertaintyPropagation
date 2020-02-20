@@ -35,6 +35,10 @@ namespace PolynomialForms {
     void Pow::visit(ExprVisitorPtr ev) const {
         ev -> visitPow(subExpr, pow);
     }
+
+    void Div::visit(ExprVisitorPtr ev) const {
+        ev -> visitDiv(numer, denom);
+    }
 }
 
 

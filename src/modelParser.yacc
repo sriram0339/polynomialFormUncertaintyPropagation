@@ -103,6 +103,10 @@ expr: expr '+' expr {
     $$ = new Plus( ExprPtr($1), 1.0, ExprPtr($3), -1.0);
 }
 
+| expr '/' expr {
+    $$ = new Div(ExprPtr($1), ExprPtr($3));
+}
+
 | expr '*' expr {
     $$ = new Star(ExprPtr($1), ExprPtr($3));
 }

@@ -17,7 +17,8 @@ using namespace PolynomialForms;
 
 extern void computeRoboticArmModel(int numReachSteps);
 extern void computeRimlessWheel(int numReachSteps, double meanParam);
-
+extern void computeCartPoleModel(int maxDegree, int numReps);
+void computeCartPoleNonPolyModel(int maxDegree, int numReps);
 void printHelpMessage(const char * progName){
     std::cout << "Usage: " << progName << " [options] [optional file name to parse]" << std::endl;
     std::cout << "Options: "<<std::endl;
@@ -33,7 +34,7 @@ int main(int argc, char * argv[]){
     int maxDegree = 4;
     opterr = 0;
 
-    while ((c = getopt (argc, argv, "n:d:hrw:4")) != -1)
+    while ((c = getopt (argc, argv, "n:d:hcerw:4")) != -1)
         switch (c)
         {
             case 'n':
@@ -50,6 +51,12 @@ int main(int argc, char * argv[]){
                 computeRoboticArmModel(numReachSteps);
                 exit(1);
                 break;
+            case 'c':
+                computeCartPoleModel(maxDegree, numReachSteps);
+                exit(1);
+            case 'e':
+                computeCartPoleNonPolyModel(maxDegree, numReachSteps);
+                exit(1);
             case 'w': {
                 double meanParam = atof(optarg);
                 std::cout << "Rimless Wheel mean Param: " << meanParam << std::endl;

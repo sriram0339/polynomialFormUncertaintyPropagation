@@ -14,7 +14,7 @@
 #include "StateAbstraction.hh"
 
 namespace PolynomialForms {
-    typedef enum {VAR_TYPE, CONST_TYPE, PLUS_TYPE, MULT_TYPE, SIN_TYPE, COS_TYPE, DISTRIB_TYPE, POW_TYPE} expr_type_t;
+    typedef enum {VAR_TYPE, CONST_TYPE, PLUS_TYPE, MULT_TYPE, DIV_TYPE, SIN_TYPE, COS_TYPE, DISTRIB_TYPE, POW_TYPE} expr_type_t;
 
     class ExprVisitor;
     typedef std::shared_ptr<ExprVisitor> ExprVisitorPtr;
@@ -84,6 +84,25 @@ namespace PolynomialForms {
         }
     };
 
+    class Div: public Expr {
+    protected:
+        ExprPtr numer;
+        ExprPtr denom;
+    public:
+        Div(ExprPtr e1, ExprPtr e2): Expr(DIV_TYPE), numer(e1), denom(e2) {};
+        virtual void visit(ExprVisitorPtr ev ) const;
+        virtual MultivariatePoly evaluate( StateAbstractionPtr st) const{
+            MultivariatePoly retPoly(1.0);
+            MpfiWrapper rem(0.0);
+            MultivariatePoly p1 = numer -> evaluate(st);
+            MultivariatePoly p2 = denom -> evaluate(st);
+            MultivariatePoly p3 = p2.reciprocal(st -> getRangeMapForNoiseSymbols());
+            MultivariatePoly p4 = p3.multiply(p1);
+            return p4.truncate(st -> getMaxDegree(), st -> getRangeMapForNoiseSymbols());
+        }
+
+    };
+
     class Star: public Expr {
     protected:
         std::vector<ExprPtr> subExprs;
@@ -95,27 +114,14 @@ namespace PolynomialForms {
 
         virtual MultivariatePoly evaluate( StateAbstractionPtr st) const{
             MultivariatePoly retPoly(1.0);
-            MpfiWrapper rem(0.0);
             int i = 0;
             for (i = 0; i < subExprs.size(); ++i ) {
                 MultivariatePoly tmp = subExprs[i] -> evaluate(st);
-                MpfiWrapper constTerm = tmp.getConstIntvl();
-                MpfiWrapper medPt = median(constTerm);
-                tmp.setConst(medPt);
-                constTerm = constTerm - medPt;
-                std::map<int, MpfiWrapper> rangeMap = st->getRangeMapForNoiseSymbols();
-                MpfiWrapper tmpIntvl = tmp.evaluate(rangeMap);
-                MpfiWrapper retPolyIntvl = retPoly.evaluate(rangeMap);
-                if ( i == 0){
-                    rem = constTerm;
-                } else {
-                    rem = rem * tmpIntvl + constTerm * retPolyIntvl;
-                }
-
                 retPoly = retPoly.multiply(tmp);
             }
-            retPoly.addToConst(rem);
-            return retPoly;
+            retPoly.centerAssign(st -> getRangeMapForNoiseSymbols());
+
+            return retPoly.truncate(st -> getMaxDegree(), st -> getRangeMapForNoiseSymbols());
         }
     };
 
@@ -131,7 +137,10 @@ namespace PolynomialForms {
         virtual void visit(ExprVisitorPtr ev ) const ;
         virtual MultivariatePoly evaluate(StateAbstractionPtr st) const {
             MultivariatePoly tmp = subExpr -> evaluate(st);
-            return tmp.powPoly(pow);
+            tmp = tmp.powPoly(pow);
+            tmp.centerAssign(st -> getRangeMapForNoiseSymbols());
+            return tmp.truncate(st -> getMaxDegree(), st -> getRangeMapForNoiseSymbols());
+
         }
     };
 
@@ -183,6 +192,7 @@ namespace PolynomialForms {
         virtual void visitStar(std::vector<ExprPtr> const & subExprs){}
         virtual void visitPlus(std::vector<ExprPtr> const & subExprs, std::vector<MpfiWrapper> const & scaleFactors){}
         virtual void visitVar(int varID){}
+        virtual void visitDiv(ExprPtr num, ExprPtr den);
         virtual void visitConst(MpfiWrapper const & c){}
         virtual void visitPow(ExprPtr subExpr, int pow){}
     };
