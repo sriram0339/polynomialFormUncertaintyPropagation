@@ -209,15 +209,15 @@ struct ModelSimulation {
             MultivariatePoly w4Poly(0.01 * sqrt(delta), w4);
 
             MultivariatePoly tmp0 = dthetadt.powPoly(2);
-            tmp0 = tmp0.truncate(maxDegree, env);
+            tmp0.truncateAssign(maxDegree, env);
             tmp0.scaleAssign(L);
             // tmp2 = (mc + mp sin(theta)^2)
             MultivariatePoly sinTheta = theta.sine(env);
             MultivariatePoly cosTheta = theta.cosine(env);
             MultivariatePoly tmp1 = sinTheta;
-            tmp1 = tmp1.truncate(maxDegree, env);
+            tmp1.truncateAssign(maxDegree, env);
             MultivariatePoly tmp2 = tmp1.powPoly(2);
-            tmp2 = tmp2.truncate(maxDegree, env);
+            tmp2.truncateAssign(maxDegree, env);
             tmp2.scaleAssign(mp);
             tmp2.addToConst(mc);
             //denTerm = 1/tmp2
@@ -239,13 +239,13 @@ struct ModelSimulation {
             MultivariatePoly tmp5 = cosTheta;
             tmp5.scaleAssign(-g);
             tmp5.scaleAndAddAssign(1.0, tmp0);
-            tmp5 = tmp5.truncate(maxDegree, env);
+            tmp5.truncateAssign(maxDegree, env);
             tmp4 = tmp4.multiply(tmp5);
             MultivariatePoly ddx;
             ddx.scaleAndAddAssign(-1.0, tmp4);
             ddx.scaleAndAddAssign(1.0, feedbackTerm);
             ddx = ddx.multiply(denTerm);
-            ddx = ddx.truncate(maxDegree, env);
+            ddx.truncateAssign(maxDegree, env);
 
 
             /*
@@ -265,14 +265,14 @@ struct ModelSimulation {
             MultivariatePoly tmp3;
             tmp3.scaleAndAddAssign(1.0, feedbackTerm);
             tmp3 = tmp3.multiply(cosTheta);
-            tmp3 = tmp3.truncate(maxDegree, env);
+            tmp3.truncateAssign(maxDegree, env);
             MultivariatePoly sin2Theta(theta);
             sin2Theta.scaleAssign(2.0);
             sin2Theta = sin2Theta.sine(env);
 
             tmp0 = tmp0.multiply(sin2Theta);
             tmp0.scaleAssign(0.5 * mp);
-            tmp0 = tmp0.truncate(maxDegree, env);
+            tmp0.truncateAssign(maxDegree, env);
             MultivariatePoly ddtheta(tmp3);
             ddtheta.scaleAndAddAssign(-1.0, tmp0);
             ddtheta.scaleAndAddAssign((mc+mp)*g, sinTheta);
@@ -294,16 +294,16 @@ struct ModelSimulation {
             dthetadt.scaleAndAddAssign(1.0, w4Poly);
 
             x.centerAssign(env);
-            x = x.truncate(maxDegree, env);
+            x.truncateAssign(maxDegree, env);
 
             theta.centerAssign(env);
-            theta = theta.truncate(maxDegree, env);
+            theta.truncateAssign(maxDegree, env);
 
             dxdt.centerAssign(env);
-            dxdt = dxdt.truncate(maxDegree, env);
+            dxdt.truncateAssign(maxDegree, env);
 
             dthetadt.centerAssign(env);
-            dthetadt = dthetadt.truncate(maxDegree, env);
+            dthetadt.truncateAssign(maxDegree, env);
 
 
         }
