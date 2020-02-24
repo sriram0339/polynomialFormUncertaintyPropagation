@@ -4,7 +4,7 @@ project(polynomialFormUncertaintyPropagation)
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake-includes)
 set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -std=c++17 -Wall -Dregister= ")
-
+set(CMAKE_INSTALL_PREFIX ${PROJECT_SOURCE_DIR})
 include_directories(.)
 include_directories(src)
 include_directories(/usr/local/include)
@@ -30,11 +30,26 @@ FLEX_TARGET(MyScanner src/modelLexer.lex ${CMAKE_SOURCE_DIR}/modelLexer.cc)
 ADD_FLEX_BISON_DEPENDENCY(MyScanner MyParser)
 
 
-add_executable(polynomialFormUncertaintyPropagation src/main.cpp src/main.cpp src/MultivariatePoly.hh
+add_executable(polynomialFormUncertaintyPropagation src/main.cpp  src/MultivariatePoly.hh
                src/MpfiWrapper.hh src/MpfiWrapper.cpp src/MultivariatePoly.cpp
                src/DistributionInfo.hh src/truncatedNormalCode.cpp src/truncatedNormalCode.hh
                ${BISON_MyParser_OUTPUTS}  ${FLEX_MyScanner_OUTPUTS}
-               src/ExprAST.hh src/ExprAST.cpp src/SystemDescription.hh src/ModelParser.hh src/SystemDescription.cpp src/ModelParser.cpp src/Queries.hh src/StateAbstraction.hh src/ProbabilityQueryEvaluator.hh src/ProbabilityQueryEvaluator.cpp src/roboticArmModel.cpp src/rimlessWheelModel.cpp src/simpleTests.cpp src/cartPoleBalanceModel.cpp)
+               src/ExprAST.hh src/ExprAST.cpp src/SystemDescription.hh src/ModelParser.hh src/SystemDescription.cpp
+               src/ModelParser.cpp src/Queries.hh src/StateAbstraction.hh src/ProbabilityQueryEvaluator.hh src/ProbabilityQueryEvaluator.cpp
+               src/roboticArmModel.cpp src/rimlessWheelModel.cpp src/simpleTests.cpp src/cartPoleBalanceModel.cpp)
+
+add_library(polynomialForm  src/MultivariatePoly.hh
+        src/MpfiWrapper.hh src/MpfiWrapper.cpp src/MultivariatePoly.cpp
+        src/DistributionInfo.hh src/truncatedNormalCode.cpp src/truncatedNormalCode.hh
+        src/ExprAST.hh src/ExprAST.cpp src/SystemDescription.hh src/ModelParser.hh
+        src/SystemDescription.cpp src/ModelParser.cpp src/Queries.hh
+        src/StateAbstraction.hh src/ProbabilityQueryEvaluator.hh src/ProbabilityQueryEvaluator.cpp
+        )
+
+install (TARGETS polynomialForm DESTINATION lib)
+install (FILES src/MultivariatePoly.hh src/MpfiWrapper.hh src/DistributionInfo.hh
+        src/truncatedNormalCode.hh src/ExprAST.hh src/SystemDescription.hh src/ModelParser.hh
+        src/Queries.hh src/StateAbstraction.hh src/ProbabilityQueryEvaluator.hh DESTINATION include)
 
 target_link_libraries(polynomialFormUncertaintyPropagation
         ${MPFR_LIBRARIES}
