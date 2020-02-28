@@ -36,7 +36,7 @@ add_executable(polynomialFormUncertaintyPropagation src/main.cpp  src/Multivaria
                ${BISON_MyParser_OUTPUTS}  ${FLEX_MyScanner_OUTPUTS}
                src/ExprAST.hh src/ExprAST.cpp src/SystemDescription.hh src/ModelParser.hh src/SystemDescription.cpp
                src/ModelParser.cpp src/Queries.hh src/StateAbstraction.hh src/ProbabilityQueryEvaluator.hh src/ProbabilityQueryEvaluator.cpp
-               src/roboticArmModel.cpp src/rimlessWheelModel.cpp src/simpleTests.cpp src/cartPoleBalanceModel.cpp)
+               src/roboticArmModel.cpp src/rimlessWheelModel.cpp src/simpleTests.cpp src/cartPoleBalanceModel.cpp src/PolynomialFunctions.hh src/PolynomialFunctions.cpp)
 
 add_library(polynomialForm  src/MultivariatePoly.hh
         src/MpfiWrapper.hh src/MpfiWrapper.cpp src/MultivariatePoly.cpp
@@ -44,11 +44,13 @@ add_library(polynomialForm  src/MultivariatePoly.hh
         src/ExprAST.hh src/ExprAST.cpp src/SystemDescription.hh src/ModelParser.hh
         src/SystemDescription.cpp src/ModelParser.cpp src/Queries.hh
         src/StateAbstraction.hh src/ProbabilityQueryEvaluator.hh src/ProbabilityQueryEvaluator.cpp
+        src/PolynomialFunctions.hh src/PolynomialFunctions.cpp
         )
 
 install (TARGETS polynomialForm DESTINATION lib)
 install (FILES src/MultivariatePoly.hh src/MpfiWrapper.hh src/DistributionInfo.hh
         src/truncatedNormalCode.hh src/ExprAST.hh src/SystemDescription.hh src/ModelParser.hh
+        src/PolynomialFunctions.hh
         src/Queries.hh src/StateAbstraction.hh src/ProbabilityQueryEvaluator.hh DESTINATION include)
 
 target_link_libraries(polynomialFormUncertaintyPropagation
