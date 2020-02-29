@@ -11,6 +11,8 @@
 #include "MpfiWrapper.hh"
 #include <iostream>
 #include "DistributionInfo.hh"
+#include <cassert>
+#include <algorithm>
 #include <sstream>
 
 namespace PolynomialForms{

@@ -10,6 +10,7 @@
 #include <vector>
 #include "MpfiWrapper.hh"
 #include "truncatedNormalCode.hh"
+#include <memory>
 
 namespace PolynomialForms {
 

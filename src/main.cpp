@@ -7,6 +7,7 @@
 #include <cstdlib>
 #include <unistd.h>
 #include <cstdio>
+#include <chrono>
 
 namespace PolynomialForms{
     bool debug = false;

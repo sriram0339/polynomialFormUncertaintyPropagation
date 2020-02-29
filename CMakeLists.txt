@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.15)
+cmake_minimum_required(VERSION 3.10)
 project(polynomialFormUncertaintyPropagation)
 
 set(CMAKE_CXX_STANDARD 14)
@@ -44,7 +44,7 @@ add_library(polynomialForm  src/MultivariatePoly.hh
         src/ExprAST.hh src/ExprAST.cpp src/SystemDescription.hh src/ModelParser.hh
         src/SystemDescription.cpp src/ModelParser.cpp src/Queries.hh
         src/StateAbstraction.hh src/ProbabilityQueryEvaluator.hh src/ProbabilityQueryEvaluator.cpp
-        src/PolynomialFunctions.hh src/PolynomialFunctions.cpp
+        src/PolynomialFunctions.hh src/PolynomialFunctions.cpp src/libsetup.cpp
         )
 
 install (TARGETS polynomialForm DESTINATION lib)
