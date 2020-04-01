@@ -8,6 +8,7 @@
 #include "MultivariatePoly.hh"
 #include "DistributionInfo.hh"
 
+#include <glpk.h>
 namespace PolynomialForms {
 
     class ProbabilityQueryEvaluator {

@@ -19,6 +19,10 @@ if (NOT MPFR_FOUND)
     message(FATAL_ERROR "ERROR: MPFR not found.")
 endif(NOT MPFR_FOUND)
 
+if (NOT glpk_FOUND)
+    message(FATAL_ERROR "ERROR: glpk not found.")
+endif(NOT glpk_FOUND)
+
 find_package(MPFI REQUIRED)
 
 find_package(BISON)
@@ -55,4 +59,5 @@ install (FILES src/MultivariatePoly.hh src/MpfiWrapper.hh src/DistributionInfo.h
 
 target_link_libraries(polynomialFormUncertaintyPropagation
         ${MPFR_LIBRARIES}
-        ${MPFI_LIBRARIES})
+        ${MPFI_LIBRARIES}
+        ${glpk_LIBRARIES})

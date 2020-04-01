@@ -14,6 +14,9 @@ find_path(MPFR_c_HEADER mpfr.h
 find_path(MPFI_c_HEADER mpfi.h
         ${MPFI_INCLUDEDIR}
         /usr/include /usr/local/include)
+find_path(glpk_c_HEADER glpk.h
+        ${glpk_INCLUDEDIR}
+        /usr/include /usr/local/include)
 
 find_library(MPFR_c_LIBRARY
         NAMES mpfr
@@ -24,6 +27,11 @@ find_library(MPFR_c_LIBRARY
 find_library(MPFI_c_LIBRARY
         NAMES mpfi
         PATHS ${MPFI_LIBRARIES}
+        /usr/lib /usr/local/lib)
+
+find_library(glpk_c_LIBRARY
+        NAMES glpk
+        PATHS ${glpk_LIBRARIES}
         /usr/lib /usr/local/lib)
 
 if(MPFR_c_HEADER AND MPFR_c_LIBRARY)
@@ -38,10 +46,17 @@ if(MPFI_c_HEADER AND MPFI_c_LIBRARY)
     set(MPFI_LIBRARIES ${MPFI_c_LIBRARY})
 endif(MPFI_c_HEADER AND MPFI_c_LIBRARY)
 
+if(glpk_c_HEADER AND glpk_c_LIBRARY)
+    set(glpk_FOUND "YES")
+    set(glpk_INCLUDEDIR ${glpk_c_HEADER})
+    set(glpk_LIBRARIES ${glpk_c_LIBRARY})
+endif(glpk_c_HEADER AND glpk_c_LIBRARY)
 
 mark_as_advanced(
        MPFI_c_HEADER
         MPFI_c_LIBRARY
         MPFR_c_HEADER
         MPFR_c_LIBRARY
+        glpk_c_HEADER
+        glpk_c_LIBRARY
 )

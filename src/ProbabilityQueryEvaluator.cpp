@@ -120,6 +120,229 @@ namespace PolynomialForms{
                 }
             }
         }
+        void splitPolynomialAccordingToComponents_cutEdges(map<int, MpfiWrapper> const & distributionRanges,MpfiWrapper & interval_cut){
+            std::vector< std::set<int> > components_cut;
+            std::vector<MultivariatePoly>  splitPolys_cut;
+            set<PowerProduct> CutTerms;
+            for (int i=0;i<components.size();i++){
+                set<int> c=components[i];
+                int nc=c.size();
+                if(nc >=4){
+                    map<int,int> mp_c;//map the original index of current component into new index from 0-(nc-1)
+                    map<int,int> mp_cb;//map the new index back to the original index
+                    int count=0;
+                    for(auto & c_temp:c){
+                        mp_c[c_temp]=count;
+                        mp_cb[count]=c_temp;
+                        count++;
+                    }
+                    vector<vector<double>> w(nc,vector<double> (nc));
+                    //compute the weight of edges
+                    std::map<PowerProduct, MpfiWrapper> const & terms=splitPolys[i].getTerms();
+                    for(auto t: terms){
+                        PowerProduct const & pp = t.first;
+                        set<int> const & indices = pp.getIndices();
+                        double absM=fabs(median(t.second));
+                        for(auto & id1:indices){
+                            int newId1=mp_c[id1];
+                            for(auto & id2:indices){
+                                int newId2=mp_c[id2];
+                                if(newId1!=newId2){
+                                    w[newId1][newId2]+=absM;
+                                }
+                            }
+                        }
+                    }
+                    vector <double> ew;
+                    vector <pair<int,int>> edges;
+                    for(int i=0;i<nc;i++){
+                        for(int j=0;j<i;j++){
+                            if(w[i][j]!=0){
+                                ew.push_back(w[i][j]);
+                                edges.push_back(make_pair(i,j));
+                            }
+                        }
+                    }
+                    int K=3;//ceil(double(nc)/2.0);
+                    vector<vector<int>> Clusters(K,vector<int>());
+                    partitioning(ew,edges,nc,K,Clusters);
+                    for(int k=0;k<K;k++){
+                        vector<int> const & cluster_k = Clusters[k];
+                        set<int> c_k;
+                        //map to original index
+                        for(auto a:cluster_k){
+                            c_k.insert(mp_cb[a-1]);//index in glpk:1-nc, index in map: 0-(nc-1)
+                        }
+                        components_cut.push_back(c_k);
+                        MultivariatePoly p(0.0); // New polynomial
+                        for (auto t: terms) {
+                            // Iterate through power products
+                            PowerProduct const &pp = t.first;
+                            set<int> const &indices = pp.getIndices();
+                            /* Check if all of the vars in the power product are in the set vars of c_k */
+                            bool keepTerm = std::all_of(indices.begin(), indices.end(), [&](int i) {
+                                return c_k.find(i) != c_k.end();
+                            });
+                            if (pp.hasIntersectionWith(c_k)){
+                                if(keepTerm) {
+                                    p.setTerm(t.first, t.second);
+                                }else if(!keepTerm && !CutTerms.count(pp)){
+                                    MpfiWrapper interval_t = t.second * t.first.evaluate(distributionRanges);
+                                    interval_cut = interval_cut + interval_t;
+                                    CutTerms.insert(pp);
+                                }
+                            }
+                        }
+                        splitPolys_cut.push_back(p);
+                        if (debug){
+                            std::cout << "Split poly by cutting edges: " ;
+                            p.prettyPrint(std::cout, std::map<int, string>());
+                            std::cout << std::endl;
+                        }
+                        
+                    }
+                    
+                }else{
+                    components_cut.push_back(components[i]);
+                    splitPolys_cut.push_back(splitPolys[i]);
+                }
+            }
+            //            if(splitPolys_cut.size()>0){
+            //                splitPolys_cut[0].addToConst(interval_cut);
+            //            }
+            splitPolys=splitPolys_cut;
+            components=components_cut;
+        }
+        void partitioning(vector<double> const & w,vector <pair<int,int>> const & edges,int d,int K,vector<vector<int>> & Clusters)
+        {
+            //edges{vi,vj}, index i,j=0.,1..
+            //w:weigh of eij
+            //int d:number of state variables
+            //int K=2;//Clusters_num
+            int L=1;//at least L nodes in each cluster
+            
+            //vertics:d  + K
+            //integer variables:v_ik, e_ij
+            //[v_11 v_12 ... v_1K v_21 v_22 ... v_2K...v_d1 v_d2 ... v_dK e_21 e_31 e_32...] where eij is non-zero
+            int ne=edges.size();
+            int nx=d*K+ne;//number of variables
+            int nrow=d+K+K*ne;//number of constraints
+            int size = 2*d*K+3*K*ne;
+            
+            int *rowInd = new int[ 1 + size ];
+            int *colInd = new int[ 1 + size ];
+            double *coes = new double [ 1 + size ];
+            
+            glp_prob *mip = glp_create_prob();
+            glp_set_obj_dir(mip, GLP_MIN);
+            glp_term_out(GLP_OFF);
+            
+            glp_add_rows(mip, nrow);// define how many constraints
+            for(int i=1; i<=d; ++i)
+            {   //define the coefficient of left-hand side in (bound of) constraint; here GLP_FX:equal bound.
+                glp_set_row_bnds(mip, i, GLP_FX, 1, 1);
+            }
+            for(int i=d+1; i<=d+K; ++i){
+                glp_set_row_bnds(mip, i, GLP_LO, L, L);
+            }
+            for(int i=d+K+1; i<=nrow; ++i){
+                glp_set_row_bnds(mip, i, GLP_UP, 0, 0);
+            }
+            
+            glp_add_cols(mip, nx);// define how many variables
+            for(int i=1; i<=nx; ++i){
+                glp_set_col_bnds(mip, i, GLP_DB, 0, 1);
+                glp_set_col_kind(mip, i, GLP_IV);
+            }
+            //set the objective: %e_ij
+            for(int i=d*K+1; i<=nx; ++i){
+                glp_set_obj_coef(mip, i, w[i-d*K-1]);
+            }
+            
+            //set the matrix of constraints
+            int pos=1;
+            for(int i=1; i<=d; i++){
+                for(int j=(i-1)*K+1; j<=i*K; j++){
+                    //int pos = j + (i-1)*nx;
+                    rowInd[pos] = i;
+                    colInd[pos] = j;
+                    coes[pos] = 1;
+                    pos++;
+                }
+            }
+            for(int i=1; i<=K; i++){
+                for(int j1=1; j1<=d; j1++){
+                    int j=(j1-1)*K+i;
+                    //int pos = j + (i-1)*nx +d*nx;
+                    rowInd[pos] = i+d;
+                    colInd[pos] = j;
+                    coes[pos] = 1;
+                    pos++;
+                }
+            }
+            for(int i1=1; i1<=ne; i1++){
+                for(int k=1; k<=K; k++) {
+                    int index_j=d*K+i1;//e_ij
+                    rowInd[pos] = (i1-1)*K+k + (d+K);
+                    colInd[pos] = index_j;
+                    coes[pos] = -1;
+                    pos++;
+                    int i = edges[i1-1].first + 1;
+                    int j = edges[i1-1].second + 1;
+                    index_j=(i-1)*K+k;//v_ik
+                    rowInd[pos] = (i1-1)*K+k + (d+K);
+                    colInd[pos] = index_j;
+                    coes[pos] = 1;
+                    pos++;
+                    index_j=(j-1)*K+k;//v_jk
+                    rowInd[pos] = (i1-1)*K+k + (d+K);
+                    colInd[pos] = index_j;
+                    coes[pos] = -1;
+                    pos++;
+                }
+            }
+            
+            //            for(int i=1;i<=size;i++){
+            //                cout<<rowInd[i]<<", "<<colInd[i]<<", "<<coes[i]<<endl;
+            //            }
+            
+            glp_load_matrix(mip, size, rowInd, colInd, coes);
+            
+            glp_iocp parm;
+            glp_init_iocp(&parm);
+            parm.presolve = GLP_ON;
+            int err = glp_intopt(mip, &parm);
+            if(err != 0){
+                cout<< "solving MIP problem: Failed"<<endl;
+                return;
+            }
+            
+            //            double z = glp_mip_obj_val(mip);
+            ////            for(int i=1;i<=nx;i++){
+            ////                cout<<glp_mip_col_val(mip, i)<<endl;
+            ////            }
+            //            cout<<z<<endl;
+            
+            for(int i=1;i<=d;i++){
+                for(int k=1;k<=K;k++) {
+                    if(glp_mip_col_val(mip, (i-1)*K+k)==1){
+                        Clusters[k-1].push_back(i);
+                    }
+                }
+            }
+            //            for(int k=0;k<K;k++) {
+            //                for(int j=0;j<Clusters[k].size();j++) {
+            //                    cout<<Clusters[k][j]<<" ";
+            //                }
+            //                cout<<endl;
+            //            }
+            
+            glp_delete_prob(mip);
+            delete[] rowInd;
+            delete[] colInd;
+            delete[] coes;
+            
+        }
 
     public:
         NoiseSymbolGraph(int n, MultivariatePoly const & mp_, std::vector<MultivariatePoly> & res_): numVerts(n),
@@ -128,12 +351,24 @@ namespace PolynomialForms{
             doBFSForIdentifyingSCCs();
             splitPolynomialAccordingToComponents();
         }
+        NoiseSymbolGraph(map<int, MpfiWrapper> const & distributionRanges_, int n, MultivariatePoly const & mp_, std::vector<MultivariatePoly> & res_, MpfiWrapper & interval_cut_): numVerts(n),
+        adjList(n, std::set<int>()), mp(mp_), splitPolys(res_){
+            addEdges();
+            doBFSForIdentifyingSCCs();
+            splitPolynomialAccordingToComponents();
+            splitPolynomialAccordingToComponents_cutEdges(distributionRanges_,interval_cut_);
+        }
 
     };
 
 
     void ProbabilityQueryEvaluator::separatePolynomialIntoComponents() {
-        NoiseSymbolGraph nsGraph(distributionInfo.size(), mp, splitComponents);
+        //NoiseSymbolGraph nsGraph(distributionInfo.size(), mp, splitComponents);
+        MpfiWrapper interval_cut(0.0);
+        NoiseSymbolGraph nsGraph(distributionRanges, distributionInfo.size(), mp, splitComponents, interval_cut);
+        t = t- interval_cut.upper(); // if p + [l,u] >= 0  then p >= -u Pr(p + [l,u] >= 0) <= P(p >= -u) <= ..
+        //std::cout << "Debug: Converting p +  " << interval_cut << " >= s+t into p >= s + " << t << std::endl;
+
         polynomialExpectation = mp.expectation(distributionInfo);
         MpfiWrapper sumOfExpectations(0.0);
         for (auto & c: splitComponents){
