@@ -46,6 +46,12 @@ namespace PolynomialForms {
           return initialDistrib;
       }
 
+      std::map<int, ExprPtr> const & getUpdates() const {
+          return updates;
+      }
+
+      std::vector<Query> const & getQueries() const { return queries; }
+
       StateAbstractionPtr initialize(int maxDegree =4);
       void computeOneStep(StateAbstractionPtr st, int maxDegree = -1);
 

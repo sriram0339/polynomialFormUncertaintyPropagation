@@ -46,6 +46,7 @@ namespace PolynomialForms{
             MultivariatePoly mp2 = e -> evaluate(st);
             if (maxDegree > 0) {
                 MultivariatePoly mp2_trunc = mp2.truncate(maxDegree, st->getRangeMapForNoiseSymbols());
+                mp2_trunc.centerAssign(st->getRangeMapForNoiseSymbols());
                 newStateMap.insert(make_pair(varID, mp2_trunc));
             } else {
                 newStateMap.insert(make_pair(varID, mp2));
@@ -80,8 +81,8 @@ namespace PolynomialForms{
                 case EXPECT_QUERY: {
                     MpfiWrapper r = p.expectation(st->getNoiseSymbolInfoMap());
                     std::cout << "\t RESULT: " << r << std::endl;
-                    MpfiWrapper rHat = p.evaluate(st->getRangeMapForNoiseSymbols());
-                    std::cout << "\t RANGE: " << rHat << std::endl;
+                    // MpfiWrapper rHat = p.evaluate(st->getRangeMapForNoiseSymbols());
+                    //std::cout << "\t RANGE: " << rHat << std::endl;
                 }
                     break;
             }

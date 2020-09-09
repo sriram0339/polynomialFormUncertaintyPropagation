@@ -38,6 +38,7 @@ namespace PolynomialForms {
         MpfiWrapper  c;
     public:
         explicit Const(MpfiWrapper const & c_): Expr(CONST_TYPE), c(c_) {};
+        MpfiWrapper getConst() const {return c; };
         virtual void visit(ExprVisitorPtr ev ) const;
         virtual MultivariatePoly evaluate(StateAbstractionPtr st) const {
             return MultivariatePoly(c);
@@ -49,6 +50,7 @@ namespace PolynomialForms {
        int varID;
     public:
         Var(int id_): Expr(VAR_TYPE), varID(id_) {};
+        int getID() const { return varID; };
         void visit(ExprVisitorPtr ev ) const override;
         MultivariatePoly evaluate(StateAbstractionPtr st) const override {
             return st -> getPolynomialForVar(varID);
@@ -71,6 +73,9 @@ namespace PolynomialForms {
             subExprs.push_back(e);
             scaleFactors.push_back(scale);
         }
+
+        std::vector<ExprPtr> const & getSubExprs() const { return subExprs; };
+        std::vector<MpfiWrapper> const & getScaleFactors() const { return scaleFactors;};
 
         virtual void visit(ExprVisitorPtr ev ) const ;
         virtual MultivariatePoly evaluate(StateAbstractionPtr st) const{
@@ -112,6 +117,8 @@ namespace PolynomialForms {
 
         virtual void visit(ExprVisitorPtr ev ) const;
 
+        std::vector<ExprPtr> const & getSubExprs() const { return subExprs;};
+
         virtual MultivariatePoly evaluate( StateAbstractionPtr st) const{
             MultivariatePoly retPoly(1.0);
             int i = 0;
@@ -134,6 +141,9 @@ namespace PolynomialForms {
             assert(pow >= 1);
         };
 
+        ExprPtr getSubExpr() const { return subExpr;};
+        int getPow() const { return pow;} ;
+
         virtual void visit(ExprVisitorPtr ev ) const ;
         virtual MultivariatePoly evaluate(StateAbstractionPtr st) const {
             MultivariatePoly tmp = subExpr -> evaluate(st);
@@ -152,6 +162,7 @@ namespace PolynomialForms {
             assert(eType == SIN_TYPE || eType == COS_TYPE);
         }
         virtual void visit(ExprVisitorPtr ev ) const ;
+        ExprPtr getSubExpr() const { return subExpr; };
         virtual MultivariatePoly evaluate(StateAbstractionPtr st) const {
             MultivariatePoly tmp = subExpr -> evaluate(st);
             std::map<int, MpfiWrapper> rangeMap = st -> getRangeMapForNoiseSymbols();
@@ -179,9 +190,11 @@ namespace PolynomialForms {
             // Make a new instance
             int varId = st -> getNewNoiseSymbol();
             MultivariatePoly retPoly(1.0, varId);
+            retPoly.setConst(dPtr->getOffset());
             st -> addNewNoiseSymbol(varId, dPtr);
             return retPoly;
         }
+        DistributionInfoPtr getDistributionInfo() const { return dPtr; };
     };
 
 

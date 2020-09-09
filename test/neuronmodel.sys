@@ -1,0 +1,16 @@
+var x1 init uniform(0.1, 0.15)
+var x2 init uniform(0.4, 0.45)
+var alpha init uniform(0.1, 0.5)
+var beta init uniform(0.2, 0.45)
+
+x1 := x1 + 0.02 * (x1 - x1^3/3 + x2) * 0.5
+x2 := x2 + 0.02 * 2 * ( x1 - alpha + beta * x2)
+alpha := alpha
+beta := beta
+
+query q0 expectation x1
+query q1 expectation x2
+query q2 expectation x1*x2
+query q3 expectation x1^2
+query q4 expectation x2^2
+end

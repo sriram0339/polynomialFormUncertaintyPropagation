@@ -45,16 +45,17 @@ struct RoboticArmModelSimulation {
     void symbolicSimulateSystem(int maxDegree, int numReps) {
         auto start = chrono::high_resolution_clock::now();
         vector<double> angles = {10, 60, 110, 160, 140, 100, 60, 20, 10, 0};
-        int v0 = createTruncGaussian(0.0, 0.05, -0.5, 0.5);
-        int v1 = createTruncGaussian(0.0, 0.1, -0.5, 0.5);
+        int v0 = createTruncGaussian(0.0, 0.025, -0.1, 0.1);
+        int v1 = createTruncGaussian(0.0, 0.01, -0.5, 0.5);
         MultivariatePoly x(1.0, v0);
         MultivariatePoly y(1.0, v1);
 
         for (int i = 0; i < numReps; ++i){
             std::cout << "i = " << i << std::endl;
             for (double ang: angles){
-                int dVar = createUniform(0.98, 1.02);
+                int dVar = createUniform(-0.02, 0.02);
                 MultivariatePoly dPoly(1.0, dVar);
+                dPoly.setConst(1.0);
                 int tVar = createTruncGaussian(0.0, 0.01, -0.05, 0.05);
                 MultivariatePoly tPoly(1.0, tVar);
                 tPoly.setConst(1.0);
@@ -65,8 +66,8 @@ struct RoboticArmModelSimulation {
                 MultivariatePoly tmp3 = tPoly.sine(env);
                 MultivariatePoly tmp4 = tmp3.rangeMultiply(dPoly, env);
                 y.scaleAndAddAssign(1.0, tmp4);
-                x.truncateAssign(maxDegree, env);
-                y.truncateAssign(maxDegree, env);
+                //x.truncateAssign(maxDegree, env);
+                //y.truncateAssign(maxDegree, env);
 
             }
 

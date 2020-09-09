@@ -18,10 +18,11 @@ namespace PolynomialForms {
 
     public:
         Query(query_type_t qType_, std::string qid, ExprPtr e_) : qType(qType_), id(qid), queryExpr(e_) {}
-        ExprPtr getExpr(){ return queryExpr; }
+        ExprPtr getExpr() const { return queryExpr; }
         string getID() const { return id;}
         query_type_t  getType() const { return qType; }
     };
+
 
     inline Query probabilityQuery(std::string qid, ExprPtr e_) {
         return Query(PROB_QUERY, qid, e_);

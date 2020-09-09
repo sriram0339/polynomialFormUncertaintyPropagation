@@ -13,14 +13,17 @@
 #include <memory>
 
 namespace PolynomialForms {
+    extern bool doCenteringOfRVs ;
 
     class VariableDistributionInfo {
     protected:
 
         MpfiWrapper range;
+        MpfiWrapper offset;
     public:
-        VariableDistributionInfo( MpfiWrapper range_):  range(range_){};
+        VariableDistributionInfo( MpfiWrapper range_, MpfiWrapper offset_):  range(range_), offset(offset_){};
         virtual MpfiWrapper getRange() const { return range; };
+        virtual MpfiWrapper getOffset() const {return offset;};
         virtual MpfiWrapper getExpectation() const = 0;
         virtual MpfiWrapper getMoment(int j) const = 0;
         virtual ~VariableDistributionInfo() = default;
@@ -34,9 +37,17 @@ namespace PolynomialForms {
         MpfiWrapper sdev;
     public:
         TruncNormalDistributionInfo( MpfiWrapper range_, MpfiWrapper mean_, MpfiWrapper sdev_):
-        VariableDistributionInfo(range_),
+        VariableDistributionInfo(range_, 0.0),
         mean(mean_),
-        sdev(sdev_) {};
+        sdev(sdev_) {
+            if (doCenteringOfRVs) {
+                /* Center the distribution? */
+                offset = mean;
+                mean = MpfiWrapper(0.0);
+                range = range - offset;
+            }
+
+        };
 
         virtual MpfiWrapper getExpectation() const { return mean; };
 
@@ -57,9 +68,16 @@ namespace PolynomialForms {
         MpfiWrapper mean;
     public:
         UniformDistributionInfo(MpfiWrapper range_):
-                VariableDistributionInfo(range_),
-                mean((range_.upper() + range_.lower())/2.0)
-                {};
+                VariableDistributionInfo(range_, 0.0),
+                mean(median(range_))
+                {
+                if (doCenteringOfRVs) {
+                    /* Center the distribution? */
+                    offset = mean;
+                    mean = MpfiWrapper(0.0);
+                    range = range - offset;
+                }
+                };
 
         virtual MpfiWrapper getExpectation() const { return mean; };
 
@@ -71,7 +89,7 @@ namespace PolynomialForms {
             MpfiWrapper b = range.lower();
             den = den * (b-a);
             MpfiWrapper v = pow(b, j+1) - pow(a, j+1);
-            MpfiWrapper retVal = 1.0/den * v;
+            MpfiWrapper retVal = v/den;
             return retVal;
         }
 

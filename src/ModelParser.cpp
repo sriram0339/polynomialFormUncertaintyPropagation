@@ -2,6 +2,7 @@
 // Created by Sriram Sankaranarayanan on 2/14/20.
 //
 #include "ModelParser.hh"
+#include "affineForms/AffineArithmeticEvaluate.hh"
 
 StochasticSystem * globalSystem;
 extern "C" FILE *yyin;
@@ -34,6 +35,27 @@ StateAbstractionPtr computeNSteps(int n, int maxDegree){
     return st;
 }
 
+
+void computeAffineArithmeticSteps(int n,  StochasticSystemPtr sys) {
+    AAEnvironment env(0);
+    stateMap st = computeInitialMap(env, sys);
+    for (int i = 0; i < n; ++i){
+        std::cout << i << std::endl;
+        st = computeOneStep(env, sys, st);
+    }
+    std::vector<Query> const & queries = sys -> getQueries();
+    for (auto q: queries){
+        std::cout << "---- Query: " << q.getID() << "---------" << std::endl;
+        switch(q.getType()){
+            case PolynomialForms::PROB_QUERY:
+                probabilityQueryEvaluateAA(q.getExpr(), env, st);
+                break;
+            case PolynomialForms::EXPECT_QUERY:
+                expectationQueryEvaluateAA(q.getExpr(), env, st);
+                break;
+        }
+    }
+}
 
 
 

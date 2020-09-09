@@ -12,6 +12,7 @@
 namespace PolynomialForms{
     bool debug = false;
     bool fourthMomentBoundCalculation = false;
+    bool doCenteringOfRVs =true;
 };
 
 using namespace PolynomialForms;
@@ -27,17 +28,22 @@ void printHelpMessage(const char * progName){
     std::cout << "\t -d <max poly form degree> -- Set max polynomial form degree " << std::endl;
     std::cout << "\t -r                        -- Run robotic Arm Ex. (do not provide a filename to parse)" << std::endl;
     std::cout << "\t -w <meanParameterValue>   -- Run rimless Wheel Ex. (do not provide a filename to parse)" << std::endl;
+    std::cout << "\t -a                        -- Run affine arithmetic " << std::endl;
 }
 
 int main(int argc, char * argv[]){
     int c;
     int numReachSteps = 15;
     int maxDegree = 4;
+    bool affineArithmeticDo = false;
     opterr = 0;
 
-    while ((c = getopt (argc, argv, "n:d:hcerw:4")) != -1)
+    while ((c = getopt (argc, argv, "n:d:hacetrw:4")) != -1)
         switch (c)
         {
+            case 'a':
+                affineArithmeticDo = true;
+                break;
             case 'n':
                 numReachSteps = atoi(optarg);
                 break;
@@ -58,6 +64,9 @@ int main(int argc, char * argv[]){
             case 'e':
                 computeCartPoleNonPolyModel(maxDegree, numReachSteps);
                 exit(1);
+            case 't':
+                doCenteringOfRVs = false;
+                break;
             case 'w': {
                 double meanParam = atof(optarg);
                 std::cout << "Rimless Wheel mean Param: " << meanParam << std::endl;
@@ -88,22 +97,30 @@ int main(int argc, char * argv[]){
         std::cout << "Parsing file name: " << fileName << std::endl;
         parserMain(fileName);
 
-
-        auto start = chrono::high_resolution_clock::now();
-        StateAbstractionPtr st = computeNSteps(numReachSteps, maxDegree);
-        auto end = chrono::high_resolution_clock::now();
-        double time_taken =
-                chrono::duration_cast<chrono::nanoseconds>(end - start).count();
-        time_taken *= 1e-9;
-        std::cout << "Evaluating Queries"<< std::endl;
-        globalSystem -> evaluateQueries(st);
-        auto end2 = chrono::high_resolution_clock::now();
-        double time_taken2 =
-                chrono::duration_cast<chrono::nanoseconds>(end2 - end).count();
-        time_taken2 *= 1e-9;
-        std::cout << " Time Taken: " << std::endl;
-        std::cout << "Poly form calculations: " << time_taken << std::endl;
-        std::cout << "Query evaluations: " << time_taken2 << std::endl;
+        if (!affineArithmeticDo) {
+            auto start = chrono::high_resolution_clock::now();
+            StateAbstractionPtr st = computeNSteps(numReachSteps, maxDegree);
+            auto end = chrono::high_resolution_clock::now();
+            double time_taken =
+                    chrono::duration_cast<chrono::nanoseconds>(end - start).count();
+            time_taken *= 1e-9;
+            std::cout << "Evaluating Queries" << std::endl;
+            globalSystem->evaluateQueries(st);
+            auto end2 = chrono::high_resolution_clock::now();
+            double time_taken2 =
+                    chrono::duration_cast<chrono::nanoseconds>(end2 - end).count();
+            time_taken2 *= 1e-9;
+            std::cout << " Time Taken: " << std::endl;
+            std::cout << "Poly form calculations: " << time_taken << std::endl;
+            std::cout << "Query evaluations: " << time_taken2 << std::endl;
+        } else {
+            auto start = chrono::high_resolution_clock::now();
+            computeAffineArithmeticSteps(numReachSteps, std::make_shared<StochasticSystem>(*globalSystem));
+            auto end = chrono::high_resolution_clock::now();
+            double time_taken = chrono::duration_cast<chrono::nanoseconds>(end-start).count();
+            time_taken *= 1e-9;
+            std::cout << " Time Taken:" << time_taken << std::endl;
+        }
     } else {
         printHelpMessage(argv[0]);
         std::cerr << "No file provided" << std::endl;

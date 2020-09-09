@@ -17,5 +17,5 @@ void parserMain(const char * fileName);
 StateAbstractionPtr computeNSteps(int n, int maxDegree);
 
 
-
+void computeAffineArithmeticSteps(int n,  StochasticSystemPtr sys);
 #endif //POLYNOMIALFORMUNCERTAINTYPROPAGATION_MODELPARSER_HH

@@ -1,14 +1,14 @@
 cmake_minimum_required(VERSION 3.10)
 project(polynomialFormUncertaintyPropagation)
 
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake-includes)
-set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -std=c++17 -Wall -Dregister= ")
+set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g  -Wall  -O3 -Dregister= ")
 set(CMAKE_INSTALL_PREFIX ${PROJECT_SOURCE_DIR})
 include_directories(.)
 include_directories(src)
 include_directories(/usr/local/include)
-link_directories(/usr/local/lib /usr/lib)
+link_directories(/usr/local/lib /usr/lib /usr/local/opt/llvm@9/lib)
 
 include(FindMPFI)
 if (NOT MPFI_FOUND)
@@ -38,9 +38,15 @@ add_executable(polynomialFormUncertaintyPropagation src/main.cpp  src/Multivaria
                src/MpfiWrapper.hh src/MpfiWrapper.cpp src/MultivariatePoly.cpp
                src/DistributionInfo.hh src/truncatedNormalCode.cpp src/truncatedNormalCode.hh
                ${BISON_MyParser_OUTPUTS}  ${FLEX_MyScanner_OUTPUTS}
-               src/ExprAST.hh src/ExprAST.cpp src/SystemDescription.hh src/ModelParser.hh src/SystemDescription.cpp
-               src/ModelParser.cpp src/Queries.hh src/StateAbstraction.hh src/ProbabilityQueryEvaluator.hh src/ProbabilityQueryEvaluator.cpp
-               src/roboticArmModel.cpp src/rimlessWheelModel.cpp src/simpleTests.cpp src/cartPoleBalanceModel.cpp src/PolynomialFunctions.hh src/PolynomialFunctions.cpp)
+               src/ExprAST.hh src/ExprAST.cpp src/SystemDescription.hh
+               src/ModelParser.hh src/SystemDescription.cpp
+               src/ModelParser.cpp src/Queries.hh src/StateAbstraction.hh
+               src/affineForms/utilities.hpp src/affineForms/utilities.cpp
+               src/affineForms/affineArithmeticClass.hpp src/affineForms/aaEnvironment.hpp
+               src/affineForms/affineArithmeticClass.cpp src/affineForms/aaEnvironment.cpp
+               src/ProbabilityQueryEvaluator.hh src/ProbabilityQueryEvaluator.cpp
+               src/roboticArmModel.cpp src/rimlessWheelModel.cpp src/simpleTests.cpp
+               src/cartPoleBalanceModel.cpp src/PolynomialFunctions.hh src/PolynomialFunctions.cpp src/affineForms/AffineArithmeticEvaluate.hh src/affineForms/AffineArithmeticEvaluate.cpp)
 
 add_library(polynomialForm  src/MultivariatePoly.hh
         src/MpfiWrapper.hh src/MpfiWrapper.cpp src/MultivariatePoly.cpp

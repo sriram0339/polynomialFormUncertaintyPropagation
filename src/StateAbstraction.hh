@@ -41,6 +41,7 @@ namespace PolynomialForms{
                 DistributionInfoPtr dPtr = p.second;
                 int noiseSymbID = getNewNoiseSymbol();
                 MultivariatePoly mp( MpfiWrapper(1.0), noiseSymbID);
+                mp.setConst(dPtr -> getOffset());
                 stateVarMap.insert(make_pair(varId, mp));
                 distributionInfo.insert(make_pair(noiseSymbID, dPtr));
             }

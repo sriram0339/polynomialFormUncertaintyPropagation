@@ -366,6 +366,7 @@ namespace PolynomialForms{
         //NoiseSymbolGraph nsGraph(distributionInfo.size(), mp, splitComponents);
         MpfiWrapper interval_cut(0.0);
         NoiseSymbolGraph nsGraph(distributionRanges, distributionInfo.size(), mp, splitComponents, interval_cut);
+        std::cout << "Debug: Cost of interval cut = " << interval_cut << std::endl;
         t = t- interval_cut.upper(); // if p + [l,u] >= 0  then p >= -u Pr(p + [l,u] >= 0) <= P(p >= -u) <= ..
         //std::cout << "Debug: Converting p +  " << interval_cut << " >= s+t into p >= s + " << t << std::endl;
 
@@ -399,6 +400,7 @@ namespace PolynomialForms{
          * 1. Assume that the polynomial has been separated into components.
          * 2. Sum up the variances of each component.
          */
+        if (t <= polynomialExpectation.upper()) { return 1.0;}
         MpfiWrapper variancesSum (0.0);
         for (auto c: componentVariances) {
             variancesSum = variancesSum + c;
@@ -412,18 +414,21 @@ namespace PolynomialForms{
         std::cout << "Chernoff: E(X) = " << polynomialExpectation << std::endl;
         double s = t - polynomialExpectation.upper();
         std::cout << "Debug: Chernoff bounds -- X - E(X) >= " << s << std::endl;
+        if ( s <= 0) { return 0.0; }
         double denSum = 0;
         for (auto c: splitComponents){
             MpfiWrapper rng = c.evaluate(distributionRanges);
             denSum = denSum + (rng.upper() - rng.lower()) * (rng.upper() - rng.lower());
         }
-        double expFactor = - 2* s * s / denSum;
+        std::cout << "Debug: Chernoff -- den sum = " << denSum << std::endl;
+        double expFactor = - 2 * s * s / denSum;
         return expFactor;
     }
 
 
     double ProbabilityQueryEvaluator::computeFourthMomentBound() const {
         MpfiWrapper fourthMomentSum(0.0);
+        if (t <= polynomialExpectation.upper()) { return 1.0;}
         for (auto c: splitComponents){
             MultivariatePoly c4 = c.powPoly(4);
             MpfiWrapper fourthMoment = c4.expectation(distributionInfo);
@@ -449,10 +454,7 @@ namespace PolynomialForms{
         }
         std::cout << "Evaluating probability query with bound " << s << std::endl;
 
-        if (expect.lower() < s && expect.upper() > s ){
-            std::cerr << "WARNING:  uncertainty in expectation of the query overlaps with the bound " << std::endl;
-            std::cerr << "Please examine the bounds carefully -- they may not be valid!" << std::endl;
-        }
+
         t = t + s;
         printPolyStats();
         double chBoundsLog = computeChernoffBound();
@@ -476,13 +478,14 @@ namespace PolynomialForms{
          *    X1... Xn are random variables with E(Xi) = 0
          */
         double s = t - polynomialExpectation.upper();
+        if (s <= 0) { return 0.0; }
         double M = 0;
         for (auto c: splitComponents){
             MpfiWrapper crng = c.evaluate(distributionRanges);
             double Mhat = max(fabs(crng.upper()), fabs(crng.lower()));
             M = max(M, Mhat);
         }
-        double sumOfVariances;
+        double sumOfVariances = 0.0;
         for (auto cvar: componentVariances) {
             sumOfVariances = sumOfVariances + cvar.upper();
         }

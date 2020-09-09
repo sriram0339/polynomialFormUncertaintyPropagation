@@ -206,7 +206,7 @@ namespace PolynomialForms {
     }
 
     bool isTooSmall(MpfiWrapper s){
-        return fabs(s.upper()) <= 1E-6 && fabs(s.lower()) <= 1E-6;
+        return fabs(s.upper() - s.lower()) <= 1E-08;
     }
 
     MultivariatePoly MultivariatePoly::truncate(int maxDegree,
@@ -214,11 +214,12 @@ namespace PolynomialForms {
         MpfiWrapper constPart = constIntvl;
         MultivariatePoly retPoly(constIntvl);
         for (auto p: terms){
-            if (p.first.totalDegree() <= maxDegree  && !isTooSmall(p.second)){
+            MpfiWrapper intvl = p.first.evaluate(var_env);
+            MpfiWrapper term_intvl = p.second * intvl;
+            if (p.first.totalDegree() <= maxDegree  && !isTooSmall(term_intvl)){
                 retPoly.setTerm(p.first, p.second);
             } else {
-                MpfiWrapper intvl = p.first.evaluate(var_env);
-                constPart = constPart + intvl * p.second;
+                constPart = constPart + term_intvl;
             }
         }
         retPoly.setConst(constPart);
