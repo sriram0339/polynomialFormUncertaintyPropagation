@@ -80,9 +80,9 @@ namespace PolynomialForms{
                     break;
                 case EXPECT_QUERY: {
                     MpfiWrapper r = p.expectation(st->getNoiseSymbolInfoMap());
-                    std::cout << "\t RESULT: " << r << std::endl;
-                    // MpfiWrapper rHat = p.evaluate(st->getRangeMapForNoiseSymbols());
-                    //std::cout << "\t RANGE: " << rHat << std::endl;
+                    std::cout << "\t EXPECTATION (RESULT): " << r << std::endl;
+                    MpfiWrapper rHat = p.evaluate(st->getRangeMapForNoiseSymbols());
+                    std::cout << "\t RANGE: " << rHat << std::endl;
                 }
                     break;
             }
