@@ -206,7 +206,7 @@ namespace PolynomialForms {
     }
 
     bool isTooSmall(MpfiWrapper s){
-        return fabs(s.upper() - s.lower()) <= 1E-08;
+        return fabs(s.upper() - s.lower()) <= 1E-12;
     }
 
     MultivariatePoly MultivariatePoly::truncate(int maxDegree,

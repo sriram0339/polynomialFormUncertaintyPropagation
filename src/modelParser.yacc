@@ -53,11 +53,12 @@
 %type<expr> expr
 %type<intval> identifier
 
-%right '^'
+%left ASSIGN
 %left '+' '-'
 %left '*' '/'
+%right '^'
 %nonassoc uminus
-%left ASSIGN
+
 
 
 %start model
