@@ -1,7 +1,7 @@
 var x1 init uniform(-1.0, -1.0)
 var x2 init uniform(1.0, 1.0)
-var alpha init uniform(0.1, 0.4)
-var beta init uniform(0.1, 0.2)
+var alpha init uniform(0.1, 0.5)
+var beta init uniform(0.05, 0.35)
 
 x1 := x1 + 0.01 * (x1 - (x1^3)/3 + x2) 
 x2 := x2 - 0.04 * ( x1 - alpha + beta * x2)
