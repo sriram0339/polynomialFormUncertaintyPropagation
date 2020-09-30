@@ -9,7 +9,8 @@ cmake-build-debug/
 modelLexer.cc
 modelParser.yy.cc
 modelParser.yy.hh
-outputs/
+results/
+outputs/*.txt
 cmake_install.cmake
 CMakeCache.txt
 libpolynomialForm.a
