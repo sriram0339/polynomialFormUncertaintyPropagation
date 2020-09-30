@@ -793,7 +793,7 @@ void bayesianPolyForm::computePolyIntegralAndSaveResults_Taylor(const vector <do
     logp_poly.setTerm( PowerProduct(),MpfiWrapper(0.0));//the polynomial without interval I
     //logp_poly.prettyPrint(std::cout, std::map<int, string>());
     MultivariatePoly prob = logp_poly.expPoly(st->getRangeMapForNoiseSymbols());
-    prob = prob.truncate(maxDegree, st->getRangeMapForNoiseSymbols());
+    //prob = prob.truncate(maxDegree, st->getRangeMapForNoiseSymbols());
     MpfiWrapper exp_pI = exp(logp_I);
 //    cout<<"I= "<<logp_I<<endl;
 //    cout<<"expI= "<<exp_pI<<endl;
