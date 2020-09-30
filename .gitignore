@@ -1,0 +1,12 @@
+.DS_Store
+.DS_Store.orig
+*.o 
+*.exe
+CMakeFiles/
+debug/
+Makefile
+cmake-build-debug/
+modelLexer.cc
+modelParser.yy.cc
+modelParser.yy.hh
+outputs/

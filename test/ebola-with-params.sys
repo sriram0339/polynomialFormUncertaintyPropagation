@@ -1,0 +1,20 @@
+var s init uniform(0.8,0.8)
+var e init uniform(0.3, 0.3)
+var i init uniform(0.2, 0.2)
+var r init uniform(0.0, 0.0)
+var c init uniform(0.02, 0.02)
+var p1 init uniform(0.25, 0.5)
+var p2 init uniform(0.2, 0.4)
+var p3 init uniform(0.25, 0.35)
+
+s := s - (s * p1 * i) * 0.5
+e := e + ( (s * p1 * i) - (p2)*e) * 0.5
+i := i + (p2 * e - p3 * i) * 0.5
+r := r + ( p3 * i) * 0.5
+c := c + p2 * e * 0.5
+p1 := p1
+p2 := p2
+p3 := p3
+
+query q0 expectation i
+end
