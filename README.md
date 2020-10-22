@@ -102,7 +102,7 @@ $ ../polynomialFormUncertaintyPropagation -n 25 -d 4 laub-loomis.sys
 
 ~~~
 $ cat 1d-lattice-10.sys
-$ ../polynomialFormUncertaintyPropagation -n 10 -d 4 1d-lattice-10.sys 
+$ ../polynomialFormUncertaintyPropagation -n 15 -d 4 1d-lattice-10.sys 
 ~~~
 
 
@@ -145,7 +145,7 @@ $ ../polynomialFormUncertaintyPropagation -n 25 -a laub-loomis.sys
 
 ~~~
 $ cat 1d-lattice-10.sys
-$ ../polynomialFormUncertaintyPropagation -n 10 -a  1d-lattice-10.sys 
+$ ../polynomialFormUncertaintyPropagation -n 15 -a  1d-lattice-10.sys 
 ~~~
 
 # Running Simulations
