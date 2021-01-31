@@ -48,6 +48,7 @@
 %token TRUNCGAUSSIAN
 %token GEQ
 %token LEQ
+%token OBSERV
 
 %type<dPtr> distributionSpec
 %type<expr> expr
@@ -172,6 +173,12 @@ singleQuery: QUERY IDENT expr GEQ expr  {
     Query q = expectationQuery(*$2, queryExpr);
     globalSystem -> addQuery(q);
     delete($2);
+}
+| QUERY IDENT OBSERV expr {
+ExprPtr queryExpr($4);
+Query q = expectationQuery(*$2, queryExpr);
+globalSystem -> addQuery(q);
+delete($2);
 };
 
 

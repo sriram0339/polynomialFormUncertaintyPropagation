@@ -45,7 +45,7 @@ stringLiteral \"(\\.|[^"\\])*\"
 "expectation" {return EXPECT; }
 "uniform" {return UNIFORM; }
 "truncGaussian" {return TRUNCGAUSSIAN; }
-
+"observed" {return OBSERV; }
 
 
 {number} { yylval.dblVal = atof( (char *)yytext ); return NUM; }

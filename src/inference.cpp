@@ -671,8 +671,25 @@ void bayesianPolyForm::computeLikelihoodPolyFormBound(int maxDegree,const vector
     MultivariatePoly logp(MpfiWrapper(0.0));
     StateAbstractionPtr st = fullSpace_pdf_polyform( logp);
 
-    //computePolyIntegralAndSaveResults( maxtheta, mintheta, logp,st);
-    computePolyIntegralAndSaveResults_Taylor( maxtheta, mintheta, logp,st);
+    cout<<"prob = "<<endl;
+    logp.prettyPrint(std::cout, std::map<int, string>());
+    //output logProb in file.txt
+    std::ofstream output_logProb("./outputs/logPoly.txt");
+    logp.prettyPrint(output_logProb, std::map<int, string>());
+    output_logProb.close();
+
+    MultivariatePoly logp_trunc = logp.truncate(2, st->getRangeMapForNoiseSymbols());
+    logp_trunc.centerAssign(st->getRangeMapForNoiseSymbols());
+    logp_trunc.setTerm(PowerProduct(),MpfiWrapper(0.0));
+    cout<<"2nd-order prob = "<<endl;
+    logp_trunc.prettyPrint(std::cout, std::map<int, string>());
+    //output logProb_trunc in file.txt
+    std::ofstream output_logProb_trunc("./outputs/logPoly_trunc.txt");
+    logp_trunc.prettyPrint(output_logProb_trunc, std::map<int, string>());
+    output_logProb_trunc.close();
+
+    computePolyIntegralAndSaveResults( maxtheta, mintheta, logp,st);
+    //computePolyIntegralAndSaveResults_Taylor( maxtheta, mintheta, logp,st);
 
 
 }
@@ -682,6 +699,7 @@ void bayesianPolyForm::computePolyIntegralAndSaveResults(const vector <double> &
     vector <vector <double>> thetaProb_list;//[the n-th cell [lower, upper]]
     vector <vector <double>> res_deltap_list,res_theta_list,res_thetaProb_list;
     //logp.prettyPrint(std::cout, std::map<int, string>());
+    auto start = chrono::high_resolution_clock::now();
     vector <vector <int>> cell_table;
     for (int i=0;i<maxtheta.size();i++){
         double temp=(maxtheta[i]-mintheta[i])/numInt/2.0;
@@ -746,6 +764,12 @@ void bayesianPolyForm::computePolyIntegralAndSaveResults(const vector <double> &
     vector <vector <double>> res_thetaProb_listNorm;
     normalizationOfInterval_discrete( res_thetaProb_list,  res_thetaProb_listNorm);
 
+    auto end = chrono::high_resolution_clock::now();
+    double time_taken =
+            chrono::duration_cast<chrono::nanoseconds>(end - start).count();
+    time_taken *= 1e-9;
+    std::cout << "Computation Time of Grid points: " << time_taken << std::endl;
+
     //output result
     std::ofstream output_deltap("./outputs/deltap list.txt");
     for (int i=0;i<res_deltap_list.size();i++)
@@ -788,6 +812,8 @@ void bayesianPolyForm::computePolyIntegralAndSaveResults(const vector <double> &
 void bayesianPolyForm::computePolyIntegralAndSaveResults_Taylor(const vector <double> & maxtheta,const vector <double> & mintheta, const MultivariatePoly & logp, StateAbstractionPtr & st) {
     //use Taylor series to approximate the polynomial exponential exp(p(x))
     logp.prettyPrint(std::cout, std::map<int, string>());
+    MpfiWrapper range_logp= logp.evaluate(st->getRangeMapForNoiseSymbols());
+    cout<<"range_logp= " <<range_logp<<endl;
     MpfiWrapper logp_I = logp.getConstIntvl();//separate the interval from polynomial
     MultivariatePoly logp_poly = logp;
     logp_poly.setTerm( PowerProduct(),MpfiWrapper(0.0));//the polynomial without interval I
@@ -800,6 +826,8 @@ void bayesianPolyForm::computePolyIntegralAndSaveResults_Taylor(const vector <do
     //cout<<"prob = "<<endl;
     //prob.prettyPrint(std::cout, std::map<int, string>());
     prob.scaleAssign(exp_pI);
+    MpfiWrapper prob_int=prob.expectation(st->getNoiseSymbolInfoMap());
+    cout<<"prob_int="<<prob_int<<endl;
     //cout<<"after prob = "<<endl;
     //prob.prettyPrint(std::cout, std::map<int, string>());
 
@@ -868,7 +896,7 @@ void bayesianPolyForm::computePolyIntegralAndSaveResults_Taylor(const vector <do
         result_p.push_back(log(prob_Mpfi.lower()));//(logp_Mpfi.lower()+log(cellMass));
         result_p.push_back(log(prob_Mpfi.upper()));//(logp_Mpfi.upper()+log(cellMass));
         table_prob.push_back(result_p);
-        cout<<prob_Mpfi.lower()<<", "<<prob_Mpfi.upper()<<endl;
+        //cout<<prob_Mpfi.lower()<<", "<<prob_Mpfi.upper()<<endl;
         res_theta_list.push_back(theta_centra);
         res_deltap_list.push_back(delta_p);
     }

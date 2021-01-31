@@ -48,7 +48,7 @@ void bayesianInference_neuronmodel(int numReachSteps,int maxDegree){
     std::vector <int> indSamp;
     for (int i=1;i<=n_samp;i++){
         int ind_temp=i*(Tdel/delta_t);
-        cout<<ind_temp<<endl;
+        //cout<<ind_temp<<endl;
         indSamp.push_back(ind_temp);
     }
 
@@ -116,14 +116,86 @@ void bayesianInference_neuronmodel(int numReachSteps,int maxDegree){
     std::cout << "Time Taken: " << time_taken << std::endl;
 }
 
+void bayesianInference_neuronmodelP3(int numReachSteps,int maxDegree){
+    vector<string> varNameVec{"alpha","beta","gamma"};
+    double delta_t = 0.05;
+    double tf=delta_t*numReachSteps;//1.0;//final time
+    double Tdel=0.05; //observation time step
+    int n_samp=tf/Tdel;
+    std::vector <int> indSamp;
+    for (int i=1;i<=n_samp;i++){
+        int ind_temp=i*(Tdel/delta_t);
+        //cout<<ind_temp<<endl;
+        indSamp.push_back(ind_temp);
+    }
+
+
+
+//    double x10 = -1.0;
+//    double x20 = 1.0;
+//    std::vector<double> x0_initial(2);
+//    x0_initial[0]=x10;
+//    x0_initial[1]=x20;
+
+    //define the range of parameter's space
+    std::vector <double> maxtheta,mintheta;
+    std::map<int, DistributionInfoPtr> Distrib = globalSystem->getInitialMap();
+    std::map<string, int> varIDs = globalSystem->getvarIDs();
+    for(int i=0;i<varNameVec.size();i++){
+        int varID = varIDs[varNameVec[i]];
+        MpfiWrapper range = Distrib[varID]->getRange();
+        MpfiWrapper offset = Distrib[varID]->getOffset();
+        range = range + offset;
+        maxtheta.push_back(range.upper());
+        mintheta.push_back(range.lower());
+    }
+
+
+
+    int numInt=20;
+    std::vector <double> tol_uplo_lay;//the tolerance of |Upper-Lower| for refining in each layer [first layer, second layer ...]
+    tol_uplo_lay.push_back(0.3);//set 1: no refine
+
+    double sigma2=0.0005;                   // noise variance
+    vector<double> cov;
+    cov.push_back(sigma2);
+// add noise on x1 state
+    std::vector<vector <double>> obs_y;
+    ////read observed data
+    const string modelDataFile = "./data/obsy.txt";
+    std::ifstream infile(modelDataFile);
+    std::string line;
+    while (std::getline(infile, line))
+    {
+        vector <double> row;
+        double a;
+        std::istringstream iss(line);
+        while((iss >> a)){// Read in from line stream
+            row.push_back(a);
+        }
+        obs_y.push_back(row);
+    }
+
+
+    auto start = chrono::high_resolution_clock::now();
+    bayesianPolyForm inf_dynamic(tf,delta_t,Tdel, obs_y, cov, numInt, indSamp,maxDegree, tol_uplo_lay,varNameVec);
+    //inf_dynamic.computeBayesian(maxtheta,mintheta);
+    //MultivariatePoly logp(MpfiWrapper(0.0));
+    //inf_dynamic.test(numReachSteps);
+
+    inf_dynamic.computeLikelihoodPolyFormBound( maxDegree, maxtheta, mintheta);
+
+    //computeNSteps(numReachSteps, maxDegree);
+    auto end = chrono::high_resolution_clock::now();
+    double time_taken =
+            chrono::duration_cast<chrono::nanoseconds>(end - start).count();
+    time_taken *= 1e-9;
+    std::cout << "Time Taken: " << time_taken << std::endl;
+}
+
 void bayesianInference_ebola(int numReachSteps,int maxDegree){
-    vector<string> varNameVec;
-    string varName1 = "p1";
-    string varName2 = "p2";
-    string varName3 = "p3";
-    varNameVec.push_back(varName1);
-    varNameVec.push_back(varName2);
-    varNameVec.push_back(varName3);
+    vector<string> varNameVec{"p1","p2","p3"};
+
     double delta_t = 0.5;
     double tf=delta_t*numReachSteps;//1.0;//final time
     double Tdel=0.5; //observation time step
@@ -131,7 +203,7 @@ void bayesianInference_ebola(int numReachSteps,int maxDegree){
     std::vector <int> indSamp;
     for (int i=1;i<=n_samp;i++){
         int ind_temp=i*(Tdel/delta_t);
-        cout<<ind_temp<<endl;
+        //cout<<ind_temp<<endl;
         indSamp.push_back(ind_temp);
     }
 
@@ -159,7 +231,7 @@ void bayesianInference_ebola(int numReachSteps,int maxDegree){
     }
 
 
-    int numInt=30;//20;
+    int numInt=40;
     std::vector <double> tol_uplo_lay;//the tolerance of |Upper-Lower| for refining in each layer [first layer, second layer ...]
     tol_uplo_lay.push_back(0.3);//set 1: no refine
 
@@ -171,6 +243,226 @@ void bayesianInference_ebola(int numReachSteps,int maxDegree){
     ////read observed data
     const string modelDataFile = "./data/obsy_ebola_i.txt";
     //const string modelDataFile = "./data/obsy_ebola_s.txt";
+    std::ifstream infile(modelDataFile);
+    std::string line;
+    while (std::getline(infile, line))
+    {
+        vector <double> row;
+        double a;
+        std::istringstream iss(line);
+        while((iss >> a)){// Read in from line stream
+            row.push_back(a);
+        }
+        obs_y.push_back(row);
+    }
+
+
+    auto start = chrono::high_resolution_clock::now();
+    bayesianPolyForm inf_dynamic(tf,delta_t,Tdel, obs_y, cov, numInt, indSamp,maxDegree, tol_uplo_lay,varNameVec);
+    //inf_dynamic.computeBayesian(maxtheta,mintheta);
+    //MultivariatePoly logp(MpfiWrapper(0.0));
+    //inf_dynamic.test(numReachSteps);
+    inf_dynamic.computeLikelihoodPolyFormBound( maxDegree, maxtheta, mintheta);
+
+    //computeNSteps(numReachSteps, maxDegree);
+    auto end = chrono::high_resolution_clock::now();
+    double time_taken =
+            chrono::duration_cast<chrono::nanoseconds>(end - start).count();
+    time_taken *= 1e-9;
+    std::cout << "Time Taken: " << time_taken << std::endl;
+}
+
+void bayesianInference_p53model(int numReachSteps,int maxDegree){
+    vector<string> varNameVec{"kp","ka"};
+    double delta_t = 180;
+    double tf=delta_t*numReachSteps;//1.0;//final time
+    double Tdel=180; //observation time step
+    int n_samp=tf/Tdel;
+    std::vector <int> indSamp;
+    for (int i=1;i<=n_samp;i++){
+        int ind_temp=i*(Tdel/delta_t);
+        //cout<<ind_temp<<endl;
+        indSamp.push_back(ind_temp);
+    }
+
+
+    //define the range of parameter's space
+    std::vector <double> maxtheta,mintheta;
+    std::map<int, DistributionInfoPtr> Distrib = globalSystem->getInitialMap();
+    std::map<string, int> varIDs = globalSystem->getvarIDs();
+    for(int i=0;i<varNameVec.size();i++){
+        int varID = varIDs[varNameVec[i]];
+        MpfiWrapper range = Distrib[varID]->getRange();
+        MpfiWrapper offset = Distrib[varID]->getOffset();
+        range = range + offset;
+        maxtheta.push_back(range.upper());
+        mintheta.push_back(range.lower());
+    }
+
+
+
+    int numInt=50;
+    std::vector <double> tol_uplo_lay;//the tolerance of |Upper-Lower| for refining in each layer [first layer, second layer ...]
+    tol_uplo_lay.push_back(0.3);//set 1: no refine
+
+    double sigma2=10;                   // noise variance
+    vector<double> cov;
+    cov.push_back(sigma2);
+// add noise on x1 state
+    std::vector<vector <double>> obs_y;
+    ////read observed data
+    const string modelDataFile = "./data/obsy_p53.txt";
+    std::ifstream infile(modelDataFile);
+    std::string line;
+    while (std::getline(infile, line))
+    {
+        vector <double> row;
+        double a;
+        std::istringstream iss(line);
+        while((iss >> a)){// Read in from line stream
+            row.push_back(a);
+        }
+        obs_y.push_back(row);
+    }
+
+
+    auto start = chrono::high_resolution_clock::now();
+    bayesianPolyForm inf_dynamic(tf,delta_t,Tdel, obs_y, cov, numInt, indSamp,maxDegree, tol_uplo_lay,varNameVec);
+    //inf_dynamic.computeBayesian(maxtheta,mintheta);
+    //MultivariatePoly logp(MpfiWrapper(0.0));
+    //inf_dynamic.test(numReachSteps);
+
+    inf_dynamic.computeLikelihoodPolyFormBound( maxDegree, maxtheta, mintheta);
+
+    //computeNSteps(numReachSteps, maxDegree);
+    auto end = chrono::high_resolution_clock::now();
+    double time_taken =
+            chrono::duration_cast<chrono::nanoseconds>(end - start).count();
+    time_taken *= 1e-9;
+    std::cout << "Time Taken: " << time_taken << std::endl;
+}
+
+void bayesianInference_honeybee(int numReachSteps,int maxDegree){
+    vector<string> varNameVec{"beta1","beta2","gamma","delta","alpha"};
+
+    double delta_t = 0.2;
+    double tf=delta_t*numReachSteps;//final time
+    double Tdel=0.2; //observation time step
+    int n_samp=tf/Tdel;
+    std::vector <int> indSamp;
+    for (int i=1;i<=n_samp;i++){
+        int ind_temp=i*(Tdel/delta_t);
+        //cout<<ind_temp<<endl;
+        indSamp.push_back(ind_temp);
+    }
+
+
+
+
+//    std::vector<double> x0_initial(5);
+//    x0_initial[0]=0.8;
+//    x0_initial[1]=0.3;
+//    x0_initial[2]=0.2;
+//    x0_initial[3]=0.0;
+//    x0_initial[4]=0.02;
+
+    //define the range of parameter's space
+    std::vector <double> maxtheta,mintheta;
+    std::map<int, DistributionInfoPtr> Distrib = globalSystem->getInitialMap();
+    std::map<string, int> varIDs = globalSystem->getvarIDs();
+    for(int i=0;i<varNameVec.size();i++){
+        int varID = varIDs[varNameVec[i]];
+        MpfiWrapper range = Distrib[varID]->getRange();
+        MpfiWrapper offset = Distrib[varID]->getOffset();
+        range = range + offset;
+        maxtheta.push_back(range.upper());
+        mintheta.push_back(range.lower());
+    }
+
+
+    int numInt=10;
+    std::vector <double> tol_uplo_lay;//the tolerance of |Upper-Lower| for refining in each layer [first layer, second layer ...]
+    tol_uplo_lay.push_back(0.3);//set 1: no refine
+
+    double sigma2=5;                   // noise variance
+    vector<double> cov;
+    cov.push_back(sigma2);
+// add noise on x1 state
+    std::vector<vector <double>> obs_y;
+    ////read observed data
+    const string modelDataFile = "./data/obsy_honeybee_x.txt";
+
+    std::ifstream infile(modelDataFile);
+    std::string line;
+    while (std::getline(infile, line))
+    {
+        vector <double> row;
+        double a;
+        std::istringstream iss(line);
+        while((iss >> a)){// Read in from line stream
+            row.push_back(a);
+        }
+        obs_y.push_back(row);
+    }
+
+
+    auto start = chrono::high_resolution_clock::now();
+    bayesianPolyForm inf_dynamic(tf,delta_t,Tdel, obs_y, cov, numInt, indSamp,maxDegree, tol_uplo_lay,varNameVec);
+    //inf_dynamic.computeBayesian(maxtheta,mintheta);
+    //MultivariatePoly logp(MpfiWrapper(0.0));
+    //inf_dynamic.test(numReachSteps);
+    inf_dynamic.computeLikelihoodPolyFormBound( maxDegree, maxtheta, mintheta);
+
+    //computeNSteps(numReachSteps, maxDegree);
+    auto end = chrono::high_resolution_clock::now();
+    double time_taken =
+            chrono::duration_cast<chrono::nanoseconds>(end - start).count();
+    time_taken *= 1e-9;
+    std::cout << "Time Taken: " << time_taken << std::endl;
+}
+
+void bayesianInference_LaubLoomis_p13(int numReachSteps,int maxDegree){
+    vector<string> varNameVec{"k1","k2","k3","k4","k5","k6","k7","k8","k9","k10","k11","k12","k13"};
+
+    double delta_t = 0.2;//0.05;
+    double tf=delta_t*numReachSteps;//final time
+    double Tdel=0.2; //observation time step
+    int n_samp=tf/Tdel;
+    std::vector <int> indSamp;
+    for (int i=1;i<=n_samp;i++){
+        int ind_temp=i*(Tdel/delta_t);
+        //cout<<ind_temp<<endl;
+        indSamp.push_back(ind_temp);
+    }
+
+
+
+    //define the range of parameter's space
+    std::vector <double> maxtheta,mintheta;
+    std::map<int, DistributionInfoPtr> Distrib = globalSystem->getInitialMap();
+    std::map<string, int> varIDs = globalSystem->getvarIDs();
+    for(int i=0;i<varNameVec.size();i++){
+        int varID = varIDs[varNameVec[i]];
+        MpfiWrapper range = Distrib[varID]->getRange();
+        MpfiWrapper offset = Distrib[varID]->getOffset();
+        range = range + offset;
+        maxtheta.push_back(range.upper());
+        mintheta.push_back(range.lower());
+    }
+
+
+    int numInt=1;//5;//20;
+    std::vector <double> tol_uplo_lay;//the tolerance of |Upper-Lower| for refining in each layer [first layer, second layer ...]
+    tol_uplo_lay.push_back(0.3);//set 1: no refine
+
+    double sigma2=0.0005;                   // noise variance
+    vector<double> cov;
+    cov.push_back(sigma2);
+// add noise on x1 state
+    std::vector<vector <double>> obs_y;
+    ////read observed data
+    const string modelDataFile = "./data/obsy_LaubLoomis.txt";
+
     std::ifstream infile(modelDataFile);
     std::string line;
     while (std::getline(infile, line))
@@ -268,40 +560,19 @@ int main(int argc, char * argv[]){
         parserMain(fileName);
 
         if (!affineArithmeticDo) {
-            bayesianInference_neuronmodel(numReachSteps, maxDegree);
-            //bayesianInference_ebola(numReachSteps, maxDegree);
-//            auto start = chrono::high_resolution_clock::now();
+            string StrFileName = string(fileName);
+            if(StrFileName == "test/neuronmodel.sys"){
+                bayesianInference_neuronmodel(numReachSteps, maxDegree);
+            }else if(StrFileName == "test/p53-model.sys"){
+                bayesianInference_p53model(numReachSteps, maxDegree);
+            }else if(StrFileName == "test/ebola-with-params.sys"){
+                bayesianInference_ebola(numReachSteps, maxDegree);
+            }else if(StrFileName == "test/honeybee-with-params.sys"){
+                bayesianInference_honeybee(numReachSteps, maxDegree);
+            }else if(StrFileName == "test/LaubLoomis-with-params.sys"){
+                bayesianInference_LaubLoomis_p13(numReachSteps, maxDegree);
+            }
 
-//            vector<MpfiWrapper> rangeVec;
-//            MpfiWrapper range;
-//            string varName1 = "alpha";
-//            range.set(0.295, 0.305);
-//            rangeVec.push_back(range);
-//            string varName2 = "beta";
-//            range.set(0.147, 0.153);
-//            rangeVec.push_back(range);
-//            vector<string> varNameVec;
-//            varNameVec.push_back(varName1);
-//            varNameVec.push_back(varName2);
-//
-//            StateAbstractionPtr st = computeNStepsAndSaveData(numReachSteps, maxDegree,varNameVec ,rangeVec);
-//            //range.set(0.325, 0.335);
-
-
-//            auto end = chrono::high_resolution_clock::now();
-//            double time_taken =
-//                    chrono::duration_cast<chrono::nanoseconds>(end - start).count();
-//            time_taken *= 1e-9;
-////            std::cout << "Evaluating Queries" << std::endl;
-////            globalSystem->evaluateQueries(st);
-////            auto end2 = chrono::high_resolution_clock::now();
-////            double time_taken2 =
-////                    chrono::duration_cast<chrono::nanoseconds>(end2 - end).count();
-////            time_taken2 *= 1e-9;
-//            std::cout << " Time Taken: " << std::endl;
-//            std::cout << "Bayesian calculations: " << time_taken << std::endl;
-////            std::cout << "Poly form calculations: " << time_taken << std::endl;
-////            std::cout << "Query evaluations: " << time_taken2 << std::endl;
         } else {
             auto start = chrono::high_resolution_clock::now();
             computeAffineArithmeticSteps(numReachSteps, std::make_shared<StochasticSystem>(*globalSystem));
