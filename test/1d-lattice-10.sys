@@ -1,0 +1,27 @@
+var u1 init  uniform(-0.5, -0.3)
+var u2  init uniform (0.4, 0.5)
+var u3 init uniform (-0.2, 0)
+var u4  init uniform (-0.2, 0)
+var u5 init uniform( 0.55, 0.75)
+var u6  init uniform (0.1, 0.3)
+var u7  init uniform(0.55, 0.75)
+var u8  init uniform(-0.19, 0.19)
+var u9  init uniform(-0.6, -0.4)
+var u10  init uniform(-0.19, 0.19)
+
+u1 := u1 + 0.1 *( 0.1 * (u2 - u1)  - u1 * (u1 - 1) * (u1 - 0.6))
+u2 := u2 + 0.1 *( 0.1 * (u1 + u3 - 2 * u2)  - u2 * (u2 - 1) * (u2 - 0.6))
+u3 := u3 + 0.1 *( 0.1 * (u2 + u4 - 2 * u3)  - u3 * (u3 - 1) * (u3 - 0.6))
+u4 := u4 + 0.1 *( 0.1 * (u5 + u3 - 2 * u4)  - u4 * (u4 - 1) * (u4 - 0.6))
+u5 := u5 + 0.1 *( 0.1 * (u6 + u4 - 2 * u5)  - u5 * (u5 - 1) * (u5 - 0.6))
+u6 := u6 + 0.1 *( 0.1 * (u7 + u5 - 2* u6)  - u6 * (u6 - 1) * (u6 - 0.6))
+u7 := u7 + 0.1 *( 0.1 * (u8 + u6 - 2* u7)  - u7 * (u7 - 1) * (u7 - 0.6))
+u8 := u8 + 0.1 *( 0.1 * (u9 + u7 - 2* u8)  - u8 * (u8 - 1) * (u8 - 0.6)) 
+u9 := u9 + 0.1 *( 0.1 * (u10 + u8 - 2 *u9)  - u9 * (u9 - 1) * (u9 - 0.6))
+u10 := u10 + 0.1 *( 0.1 * (u9 - u10)  - u10 * (u10 - 1) * (u10 - 0.6))
+
+query e0 expectation u1
+query e1 expectation u8
+query q0 u1 >= 0
+query q2 u8 <= 0
+end

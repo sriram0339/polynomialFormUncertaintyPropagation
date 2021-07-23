@@ -1,5 +1,7 @@
 from random import gauss, uniform
 from math import pi, sin, cos
+import numpy as np
+from scipy.io import savemat
 
 def randn():
     return gauss(0,1)
@@ -20,6 +22,7 @@ def runSimulations(nSims, nSteps):
     n3 = 0
     n4 = 0
     meanParam = 4.0
+    simVals = np.zeros((nSims,1))
     for i in range(nSims):
         x = 0.2 * uniform(0,1) - 0.1
         theta = pi/6
@@ -32,9 +35,11 @@ def runSimulations(nSims, nSteps):
         ex = ex + x
         if (x <= 0):
             n1 += 1
+        simVals[i,0] = x
     print('E(x) = %f' % (ex/nSims))
     print('P(x <= 0) = %d/%d' %(n1, nSims))
+    savemat('rimlesswheel-model.mat', {'x':simVals})
 
 if __name__ == '__main__':
-    runSimulations(100000,2000)
+    runSimulations(10000,2000)
 

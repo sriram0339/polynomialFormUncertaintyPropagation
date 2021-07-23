@@ -1,4 +1,7 @@
 from random import uniform
+import numpy as np
+from scipy.io import savemat
+
 
 def simulateOnce(nSteps):
     x1 = uniform(19.0, 21.1)

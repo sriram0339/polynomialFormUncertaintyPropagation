@@ -1,0 +1,19 @@
+var s init truncGaussian(0.7,0.02,0.6,0.8)
+var e init uniform(0.2, 0.4)
+var i init uniform(0.0, 0.04)
+var r init uniform(0.0, 0.04)
+var c init uniform(0.0, 0.04)
+
+
+s := s - (s * 0.35 * i) * 0.5
+e := e + ( (s * 0.35 * i) - (0.28)*e) * 0.5
+i := i + (0.28 * e - 0.29 * i) * 0.5
+r := r + ( 0.29 * i) * 0.5
+c := c + 0.28 * e * 0.5
+
+
+query q0 expectation i
+query qe1 expectation e
+query q1 e >= 0.1
+query q2 e <= 0.05
+end

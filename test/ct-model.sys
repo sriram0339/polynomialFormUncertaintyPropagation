@@ -1,0 +1,21 @@
+var x init truncGaussian(0, 0.2, -1, 1)
+var y init truncGaussian(0, 0.2, -1, 1)
+var vx init uniform(4 , 5)
+var vy init uniform(-0.3, 0.3)
+var omega init uniform(-0.25, -0.2)
+var w1 init truncGaussian(0, 0.2, -1, 1)
+var w2 init truncGaussian(0, 0.2, -1, 1)
+
+x := x + vx * (1 - 0.333 * omega^2) + vy * (0.5 * omega) + 0.5 * w1
+y := y - vx * 0.5 * omega + vy  * (1 - 0.333 * omega^2) + 0.5 * w2
+vx := vx * (1 - omega^2/2)  - vy * (omega - omega^3/3) + w1
+vy := vx * (omega - omega^3/3) + vy * (1-omega^2/2) + w2
+omega := 0.95 * omega + 0.05* uniform(-0.4, 0.4)
+w1 := truncGaussian(0, 0.2, -1, 1)
+w2 := truncGaussian(0, 0.2, -1, 1)
+
+query q0 expectation x
+query q1 expectation y
+query q3 x >= 60
+query q4 y >= 0
+end

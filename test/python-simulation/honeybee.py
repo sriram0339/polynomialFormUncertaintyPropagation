@@ -1,4 +1,6 @@
 from random import uniform, gauss
+import numpy as np
+from scipy.io import savemat
 
 def truncGaussian( mean, sigma, a, b):
     r = gauss(mean, sigma)
@@ -28,9 +30,11 @@ def simulateAll(nSamples):
     e2 = 0.0
     nq1 = 0
     nq2 = 0
-
+    simValues = np.zeros(shape=(2,nSamples))
     for j in range(nSamples):
         (z1, z2) = simulateOnce(25)
+        simValues[0,j] = z1
+        simValues[1,j] = z2
         e1 = e1 + z1
         e2 = e2 + z2
         if z1 >= 265:
@@ -41,6 +45,7 @@ def simulateAll(nSamples):
     print('E(z2) = %f' % (e2/nSamples))
     print('P(z1 >= 265) = %d/%d' % (nq1, nSamples))
     print('P(z2 <= 60) = %d/%d' % (nq2, nSamples))
+    savemat('honeybee-sims.mat', {'z':simValues})
 
 if __name__ == '__main__':
     simulateAll(1000000)
