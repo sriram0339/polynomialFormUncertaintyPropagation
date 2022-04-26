@@ -14,7 +14,7 @@ namespace PolynomialForms {
         // First deal with the constant term
         retPoly.scaleAndAddAssign(constIntvl, what, false);
         retPoly.scaleAndAddAssign(what.constIntvl, *this, false);
-        for (auto p: terms){
+        for (auto & p: terms){
             retPoly.multiplyAndAddAssign(p.second, p.first, what, false);
         }
         return retPoly;
@@ -25,7 +25,7 @@ namespace PolynomialForms {
         MultivariatePoly retPoly(r);
         // First deal with the constant term
         retPoly.scaleAndAddAssign(MpfiWrapper(2.0) * constIntvl, *this, false);
-        for (auto const p: terms){
+        for (auto const & p: terms){
             retPoly.multiplyAndAddAssign(p.second, p.first, *this, false);
         }
         return retPoly;
@@ -180,7 +180,7 @@ namespace PolynomialForms {
 
     MpfiWrapper MultivariatePoly::evaluate(std::map<int, MpfiWrapper> const &var_env) const {
         MpfiWrapper reslt(constIntvl);
-        for (auto const p: terms){
+        for (auto const &  p: terms){
             reslt = reslt + p.second * p.first.evaluate(var_env);
         }
         return reslt;
@@ -188,7 +188,7 @@ namespace PolynomialForms {
 
     MpfiWrapper MultivariatePoly::expectation(std::map<int, DistributionInfoPtr> const &env) const {
         MpfiWrapper reslt(constIntvl);
-        for (auto const p: terms){
+        for (auto const & p: terms){
             reslt = reslt + p.second * p.first.expectation(env);
         }
         return reslt;
@@ -197,7 +197,7 @@ namespace PolynomialForms {
 
     void MultivariatePoly::prettyPrint(ostream &out, std::map<int, string> const &name_env) const {
         out << constIntvl;
-        for (auto const p: terms){
+        for (auto const & p: terms){
             out << " + ";
             out << p.second << "*";
             p.first.prettyPrint(out, name_env);
@@ -213,7 +213,7 @@ namespace PolynomialForms {
             std::map<int, MpfiWrapper> const &var_env ) const {
         MpfiWrapper constPart = constIntvl;
         MultivariatePoly retPoly(constIntvl);
-        for (auto p: terms){
+        for (auto const & p: terms){
             MpfiWrapper intvl = p.first.evaluate(var_env);
             MpfiWrapper term_intvl = p.second * intvl;
             if (p.first.totalDegree() <= maxDegree  && !isTooSmall(term_intvl)){

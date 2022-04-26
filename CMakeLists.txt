@@ -1,8 +1,7 @@
 cmake_minimum_required(VERSION 3.10)
 project(polynomialFormUncertaintyPropagation)
-
 set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake-includes)
+set (CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake-includes)
 set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g  -Wall  -O3 -Dregister= ")
 set(CMAKE_INSTALL_PREFIX ${PROJECT_SOURCE_DIR})
 include_directories(.)
